@@ -20,12 +20,12 @@ var match, data={}, webvtt="WEBVTT FILE", ch, chdata;
 var videoFilePath=process.argv[2];
 
 // Run then process the mplayer results
-var mplayerOutput=exec(`mplayer -vo null -ao null -identify -frames 0 ${videoFilePath}`,(err,stdout,stderr)=>{
+exec(`mplayer -vo null -ao null -identify -frames 0 ${videoFilePath}`,(err,stdout,stderr)=>{
     if( err ) {
         console.error(stderr);
     } else {
         // Build a map by finding all matches in mplayer's info output
-        while( match=re.exec(mplayerOutput) ) {
+        while( match=re.exec(stdout) ) {
             if( !data[match[1]] ) data[match[1]]={};
             data[match[1]][match[2].toLowerCase()]=match[3];
         }
@@ -40,5 +40,6 @@ var mplayerOutput=exec(`mplayer -vo null -ao null -identify -frames 0 ${videoFil
         // Save the WebVTT file.
         var webvttpath=videoFilePath+".webvtt";
         fs.writeFileSync(webvttpath, webvtt);
+        console.log(webvtt);
     }
 })
