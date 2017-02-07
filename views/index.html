@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Play Video</title>
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css" />
+	<link href="index.css" type="text/css" rel="stylesheet"/>
+    <script src="index.js" language="javascript"></script>
+</head>
+<body>
+    <div id="videoBox" style="float:left; width:58%;">
+        <video id="video" preload="metadata"></video>
+        <div id="chname"></div>
+        <div id="time">
+            <span id="curTime">00:00</span>/<span id="duration">00:00</span>
+        </div>
+    </div>
+    <div id="transcriptBox" style="width:40%; float:right;">
+        <ul id="chapters">
+        </ul>
+    </div>
+</body>
+</html>

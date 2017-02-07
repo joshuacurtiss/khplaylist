@@ -1,0 +1,21 @@
+{
+  "name": "videoplaylist",
+  "description": "A playlist for meeting media including JW Library videos as well as other external media.",
+  "main": "main.js",
+  "authors": [
+    "Josh Curtiss <josh@curtiss.me>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/joshuacurtiss/kingdom-hall",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "font-awesome": "^4.7.0"
+  }
+}

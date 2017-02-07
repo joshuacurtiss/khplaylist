@@ -1,0 +1,27 @@
+{
+  "name": "videoplaylist",
+  "version": "1.0.0",
+  "description": "A playlist for meeting media including JW Library videos as well as other external media.",
+  "main": "main.js", 
+  "scripts": {
+    "start": "electron main.js",
+    "build": "electron-packager . VideoPlaylist --ignore=node_modules/electron-* --out=builds --overwrite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joshuacurtiss/kingdom-hall.git"
+  },
+  "author": "Josh Curtiss <josh@curtiss.me>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joshuacurtiss/kingdom-hall/issues"
+  },
+  "homepage": "https://github.com/joshuacurtiss/kingdom-hall",
+  "devDependencies": {
+    "electron-packager": "^8.2.0",
+    "electron-prebuilt": "^1.4.7"
+  },
+  "dependencies": {
+    "fs-extra": "^1.0.0"
+  }
+}
