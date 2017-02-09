@@ -1,4 +1,88 @@
 body {
     margin:0;
     padding:0;
+    background-color: black;
+    font-family: Calibri, 'Trebuchet MS', 'Gill Sans', 'Gill Sans MT', sans-serif;
+    color: #eee;
+}
+
+/***** FULLSCREEN *****/
+
+body.fullscreenMode .playlistMode {display:none;}
+
+body.fullscreenMode video {
+    position:absolute;
+    height: 100vh;
+    width: 100vw;
+}
+
+#fullscreeninfo {
+    position:absolute;
+    width: 16vw;
+    right: 3vw;
+    bottom: 3vh;
+    color: #444;
+    border: 3px solid #222;
+    border-radius: 8px;
+    padding: 6px;
+    background-color: #111;
+}
+
+/***** PLAYLIST *****/
+
+body.playlistMode .fullscreenMode {display:none;}
+
+body.playlistMode #videoContainer {
+    position: absolute;
+    width: 36vw;
+    height: 100vh;
+    margin-left: 7vw;
+}
+
+body.playlistMode video {
+    width: 100%;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-top: 25vh;
+}
+
+#playlistContainer {
+    position:absolute;
+    width: 45vw;
+    right: 6vw;
+    top: 20vh;
+    height: 60vh;
+    border: 2px solid #222;
+    border-radius: 8px;
+    background-color: #0f0f0f;
+    overflow-y: auto;
+}
+
+#playlistContainer h1 {
+    font-size: 18px;
+    color: #999;
+    text-align:center;
+    margin:0;
+    padding:5px;
+    background-color: #1c1c1c;
+    border-bottom: 2px solid #222;
+}
+
+#playlistContainer form {
+    margin: 15px;
+}
+
+#playlistContainer li {
+    margin-bottom: 10px;
+}
+
+#playlistContainer input[type=text] {
+    border: 1px solid #222;
+    background-color: #000;
+    color: #999;
+    font-size: 14px;
+    padding: 4px;
+    margin-left: 5px;
+    border-radius: 3px;
+    width: 35vw;
 }

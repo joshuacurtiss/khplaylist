@@ -1,23 +1,25 @@
 const fs=require("fs-extra");
+const jQuery=$=require("../bower_components/jquery/dist/jquery");
 const parseWebVTT=require("../js/parseWebVTT");
-var video, curTime, chname;
+var video, $curTime, $chname;
 var cues=[];
 
-window.onload=()=>{
+$(document).ready(()=>{
     console.log("Hello!");
     video=document.getElementById("video");
-    curTime=document.getElementById("curTime");
-    chname=document.getElementById("chname");
+    $curTime=$(".curTime");
+    $chname=$(".chname");
     // Wire up listeners
     video.addEventListener("timeupdate", endChapter, false);
     video.addEventListener("timeupdate", timeui, false);
+    video.addEventListener("click", toggleVideo, false);
     // Initialize a sample video
     loadVideo(`/Users/josh/Downloads/nwt_66_Re_ASL_21_r240P.m4v`);
     // Done!
     console.log("Initialized!");
     // Playing chapter
-    playChapter(3);
-};
+    playChapter(4);
+});
 
 function loadVideo(path){
     video=document.getElementById("video");
@@ -25,23 +27,32 @@ function loadVideo(path){
     var webvtt=fs.readFileSync(`${path}.webvtt`,`UTF-8`);
     cues=parseWebVTT(webvtt);
     // UI
-    document.getElementById("duration").innerText=cues[cues.length-1].end.toFixed(2);
+    $(".duration").text(cues[cues.length-1].end.toFixed(2));
 }
 
 function playChapter(chnum){
     var ch=cues[chnum];
     console.log(`Playing chapter ${ch.content} (${ch.id}), from ${ch.start} to ${ch.end}.`);
-    chname.innerText=ch.content;
+    $chname.text(ch.content);
     video.setAttribute("data-chapter",ch.id);
     video.currentTime=parseFloat(ch.start);
     video.play();
 }
 
 function timeui(){
-    curTime.innerText=video.currentTime.toFixed(2);
+    $curTime.text(video.currentTime.toFixed(2));
 }
 
 function endChapter(){
-    var curChapter=video.getAttribute('data-chapter');
-    if( video.currentTime>=parseFloat(cues[curChapter].end) && !video.paused ) video.pause();
+    var curChapter=video.getAttribute("data-chapter");
+    if( curChapter!="" ) {
+        if( video.currentTime>=parseFloat(cues[curChapter].end) && !video.paused ) {
+            video.pause();
+            video.setAttribute("data-chapter","");
+        }
+    }
+}
+
+function toggleVideo(){
+    if(!this.paused) this.pause(); else this.play();
 }

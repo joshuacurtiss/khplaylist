@@ -7,17 +7,32 @@
 	<link href="index.css" type="text/css" rel="stylesheet"/>
     <script src="index.js" language="javascript"></script>
 </head>
-<body>
-    <div id="videoBox" style="float:left; width:58%;">
+<body class="playlistMode">
+    <div id="videoContainer">
         <video id="video" preload="metadata"></video>
-        <div id="chname"></div>
-        <div id="time">
-            <span id="curTime">00:00</span>/<span id="duration">00:00</span>
-        </div>
     </div>
-    <div id="transcriptBox" style="width:40%; float:right;">
-        <ul id="chapters">
-        </ul>
+    <div id="playlistContainer" class="playlistMode">
+        <h1>Playlist</h1>
+        <form id="playlist">
+            <ol>
+                <li><input type="text" name="fld1" id="fld1" /></li>
+                <li><input type="text" name="fld2" id="fld2" /></li>
+                <li><input type="text" name="fld3" id="fld3" /></li>
+                <li><input type="text" name="fld4" id="fld4" /></li>
+                <li><input type="text" name="fld5" id="fld5" /></li>
+                <li><input type="text" name="fld6" id="fld6" /></li>
+                <li><input type="text" name="fld7" id="fld7" /></li>
+                <li><input type="text" name="fld8" id="fld8" /></li>
+                <li><input type="text" name="fld9" id="fld9" /></li>
+            </ol>
+        </form>
+    </div>
+    <div id="fullscreeninfo" class="fullscreenMode">
+        <div><strong>Now playing:</strong></div>
+        <div class="chname">Nothing!</div>
+        <div class="time">
+            <span class="curTime"></span>&nbsp;/&nbsp;<span class="duration"></span>
+        </div>
     </div>
 </body>
 </html>
