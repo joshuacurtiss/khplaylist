@@ -1,8 +1,10 @@
 const fs=require("fs-extra");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
-const parseWebVTT=require("../js/parseWebVTT");
+const ScriptureUtil=require("../../misc/ScriptureUtil");
+
 var video, $curTime, $chname;
-var cues=[];
+var su=new ScriptureUtil("/Users/josh/Downloads");
+var playlist=[];
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -10,47 +12,66 @@ $(document).ready(()=>{
     $curTime=$(".curTime");
     $chname=$(".chname");
     // Wire up listeners
-    video.addEventListener("timeupdate", endChapter, false);
-    video.addEventListener("timeupdate", timeui, false);
+    video.addEventListener("timeupdate", checkVideo, false);
+    video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
-    // Initialize a sample video
-    loadVideo(`/Users/josh/Downloads/nwt_66_Re_ASL_21_r240P.m4v`);
-    // Done!
+    
+    // TESTING //
+    var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
+    scriptures.forEach((s)=>{
+        var svideo=su.createScriptureVideo(s);
+        playlist.push(svideo);
+    });
+    playItem(0);
+    // END TESTING //
+
+    updateListUI();
     console.log("Initialized!");
-    // Playing chapter
-    playChapter(4);
 });
 
-function loadVideo(path){
-    video=document.getElementById("video");
-    video.src=path;
-    var webvtt=fs.readFileSync(`${path}.webvtt`,`UTF-8`);
-    cues=parseWebVTT(webvtt);
-    // UI
-    $(".duration").text(cues[cues.length-1].end.toFixed(2));
+function updateListUI() {
+    for( var i=0 ; i<playlist.length ; i++ ) {
+        $(`#fld${i+1}`).val(playlist[i].displayName);
+    }
 }
 
-function playChapter(chnum){
-    var ch=cues[chnum];
-    console.log(`Playing chapter ${ch.content} (${ch.id}), from ${ch.start} to ${ch.end}.`);
-    $chname.text(ch.content);
-    video.setAttribute("data-chapter",ch.id);
-    video.currentTime=parseFloat(ch.start);
+function playItem(index) {
+    var item=playlist[index];
+    console.log(`Playing item ${index} (with ${item.list.length} cues).`);
+    video.setAttribute("data-playlist-index",index);
+    video.setAttribute("data-cue-index",0);
+    video.src=item.path;
+    video.currentTime=parseFloat(item.list[0].start);
     video.play();
 }
 
-function timeui(){
+function updateVideoUI(){
     $curTime.text(video.currentTime.toFixed(2));
 }
 
-function endChapter(){
-    var curChapter=video.getAttribute("data-chapter");
-    if( curChapter!="" ) {
-        if( video.currentTime>=parseFloat(cues[curChapter].end) && !video.paused ) {
-            video.pause();
-            video.setAttribute("data-chapter","");
+function checkVideo(){
+    var curPlaylistIndex=Number(video.getAttribute("data-playlist-index"));
+    var curCueIndex=Number(video.getAttribute("data-cue-index"));
+    if( curCueIndex>=0 ) {
+        var cues=playlist[curPlaylistIndex].list;
+        if( video.currentTime>=parseFloat(playlist[curPlaylistIndex].list[curCueIndex].end) ) {
+            if( curCueIndex<cues.length-1 ) {
+                curCueIndex+=1;
+                video.currentTime=parseFloat(cues[curCueIndex].start);
+                video.setAttribute("data-cue-index",curCueIndex);
+            } else {
+                video.pause();
+                video.setAttribute("data-cue-index","-1");
+
+                // TESTING: Automatically proceed to next item. //
+                if(curPlaylistIndex<playlist.length-1) {
+                    setTimeout(`playItem(${curPlaylistIndex+1})`,3000);
+                }
+                // END TESTING //
+
+            }
         }
-    }
+    } 
 }
 
 function toggleVideo(){
