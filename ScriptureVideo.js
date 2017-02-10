@@ -71,7 +71,7 @@ class ScriptureVideo {
             if (!s[t].match(/(\d+):(\d+):(\d+)/)) {
                 // cue identifier present
                 id = s[0];
-                t = 1;
+                if(s.length>1) t = 1;
             }
             // is the next line the time string
             if (!s[t].match(/(\d+):(\d+):(\d+)/)) {
