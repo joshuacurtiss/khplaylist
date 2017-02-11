@@ -1,22 +1,18 @@
 // extractWebVTT will receive a video file and use mplayer to retrieve
 // chaper information. It then converts the output from mplayer into a
-// valid WebVTT format and saves it as a file with same name/path with 
-// extension .webvtt! 
+// valid WebVTT format using the WebVTT object, and saves it as a file
+// with same name/path with extension .webvtt! 
 
 // Dependencies
+const WebVTT=require("./WebVTT");
 const fs=require("fs");
-const moment=require("moment");
-require("moment-duration-format");
 const exec=require('child_process').exec;
 
-// Time/Chapter Stuff
+// RegEx for finding the start/end/name data in mplayer output
 const re=/^ID_CHAPTER_(\d{1,5})_(start|end|name)=(.*)$/gim;
-const TIMEFMT="HH:mm:ss.SSS";
-const TIMEOPTS={forceLength:true, trim:false};
-function timeFormat(dur){return moment.duration(parseInt(dur)).format(TIMEFMT,TIMEOPTS)}
 
 // Variables
-var match, data={}, webvtt="WEBVTT FILE", ch, chdata;
+var match, data={};
 var videoFilePath=process.argv[2];
 
 // Run then process the mplayer results
@@ -26,20 +22,21 @@ exec(`mplayer -vo null -ao null -identify -frames 0 ${videoFilePath}`,(err,stdou
     } else {
         // Build a map by finding all matches in mplayer's info output
         while( match=re.exec(stdout) ) {
-            if( !data[match[1]] ) data[match[1]]={};
-            data[match[1]][match[2].toLowerCase()]=match[3];
+            var id=match[1],
+                key=match[2].toLowerCase(),
+                value=match[3];
+            if( !data[id] ) data[id]={id:id};
+            if( key=="start" || key=="end" ) value=parseFloat(value)/1000;
+            data[id][key]=value;
         }
-        // Loop through the chapters and builds the WebVTT
-        for( ch in data ) {
-            chdata=data[ch];
-            webvtt+=`\n\n${ch}`;
-            webvtt+=`\n${moment.duration(parseInt(chdata.start)).format(TIMEFMT,TIMEOPTS)} --> `;
-            webvtt+=`${moment.duration(parseInt(chdata.end)).format(TIMEFMT,TIMEOPTS)}`;
-            webvtt+=`\n${chdata.name}`;
-        }
+        // Convert the map to a list
+        var arr=[];
+        for( var objkey in data ) {arr.push(data[objkey])}
+        // Put the data into WebVTT object
+        var webvtt=new WebVTT(arr);
         // Save the WebVTT file.
         var webvttpath=videoFilePath+".webvtt";
-        fs.writeFileSync(webvttpath, webvtt);
-        console.log(webvtt);
+        fs.writeFileSync(webvttpath, webvtt.toString());
+        console.log(webvtt.toString());
     }
 })
