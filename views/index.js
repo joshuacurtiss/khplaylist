@@ -19,7 +19,7 @@ $(document).ready(()=>{
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
     scriptures.forEach((s)=>{
-        var svideo=su.createScriptureVideo(s);
+        var svideo=su.createVideo(s);
         playlist.push(svideo);
     });
     playItem(0);
