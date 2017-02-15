@@ -11,10 +11,12 @@ $(document).ready(()=>{
     video=document.getElementById("video");
     $curTime=$(".curTime");
     $chname=$(".chname");
+
     // Wire up listeners
     video.addEventListener("timeupdate", checkVideo, false);
     video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
+    $(".fullscreenToggle").click(toggleFullscreen);
     
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
@@ -72,6 +74,14 @@ function checkVideo(){
             }
         }
     } 
+}
+
+function toggleFullscreen(){
+    if( $('body').hasClass('fullscreenMode') ) {
+        $('body').removeClass('fullscreenMode').addClass('playlistMode');
+    } else {
+        $('body').removeClass('playlistMode').addClass('fullscreenMode');
+    }
 }
 
 function toggleVideo(){
