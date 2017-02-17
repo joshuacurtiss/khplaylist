@@ -2,6 +2,10 @@ const fs=require("fs-extra");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 const ScriptureUtil=require("../../misc/ScriptureUtil");
 
+// Link to main process
+const remote=require("electron").remote;
+const main=remote.require("./main.js");
+
 var video, $curTime, $chname;
 var su=new ScriptureUtil("/Users/josh/Downloads");
 var playlist=[];
@@ -17,6 +21,7 @@ $(document).ready(()=>{
     video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
+    $(".powerButton").click(quit);
     
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
@@ -86,4 +91,8 @@ function toggleFullscreen(){
 
 function toggleVideo(){
     if(!this.paused) this.pause(); else this.play();
+}
+
+function quit(){
+    main.quit();
 }
