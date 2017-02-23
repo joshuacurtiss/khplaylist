@@ -24,6 +24,7 @@ class ScriptureVideoUtil {
             if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(path);
             else if( ScriptureVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(path);
         }
+        console.log(`Found ${pathwalk.length} items in video path, resulting in ${videos.length} videos and ${webvtts.length} webvtt files.`);
         this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
         this.webvtts=webvtts;
     }
