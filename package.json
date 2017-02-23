@@ -1,23 +1,23 @@
 {
-  "name": "videoplaylist",
+  "name": "khplaylist",
   "version": "1.0.0",
   "description": "A playlist for meeting media including JW Library videos as well as other external media.",
   "main": "main.js", 
   "scripts": {
     "install": "bower install -F",
     "start": "electron main.js",
-    "build": "electron-packager . VideoPlaylist --ignore=node_modules/electron-* --out=builds --overwrite"
+    "build": "electron-packager . KH-Playlist --ignore=node_modules/electron-* --out=builds --overwrite"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joshuacurtiss/kingdom-hall.git"
+    "url": "https://github.com/joshuacurtiss/khplaylist.git"
   },
   "author": "Josh Curtiss <josh@curtiss.me>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/joshuacurtiss/kingdom-hall/issues"
+    "url": "https://github.com/joshuacurtiss/khplaylist/issues"
   },
-  "homepage": "https://github.com/joshuacurtiss/kingdom-hall",
+  "homepage": "https://github.com/joshuacurtiss/khplaylist",
   "devDependencies": {
     "chai": "^3.5.0",
     "electron-packager": "^8.2.0",

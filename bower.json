@@ -1,12 +1,12 @@
 {
-  "name": "videoplaylist",
+  "name": "khplaylist",
   "description": "A playlist for meeting media including JW Library videos as well as other external media.",
   "main": "main.js",
   "authors": [
     "Josh Curtiss <josh@curtiss.me>"
   ],
-  "license": "ISC",
-  "homepage": "https://github.com/joshuacurtiss/kingdom-hall",
+  "license": "MIT",
+  "homepage": "https://github.com/joshuacurtiss/khplaylist",
   "private": true,
   "ignore": [
     "**/.*",
