@@ -1,13 +1,18 @@
+const os=require("os");
+const path=require("path");
 const fs=require("fs-extra");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
-const ScriptureUtil=require("../../misc/ScriptureUtil");
+const ScriptureUtil=require("../bower_components/scripture/ScriptureUtil");
+const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
 
 // Link to main process
-const remote=require("electron").remote;
-const main=remote.require("./main.js");
+const electron=require("electron");
+const main=electron.remote.require("./main.js");
 
 var video, $curTime, $chname;
-var su=new ScriptureUtil("/Users/josh/Downloads");
+var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
+var svu=new ScriptureVideoUtil(videopath);
+var su=new ScriptureUtil();
 var playlist=[];
 
 $(document).ready(()=>{
@@ -26,7 +31,7 @@ $(document).ready(()=>{
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
     scriptures.forEach((s)=>{
-        var svideo=su.createVideo(s);
+        var svideo=svu.createVideo(s);
         playlist.push(svideo);
     });
     playItem(0);
