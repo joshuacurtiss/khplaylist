@@ -1,5 +1,5 @@
-const Scripture=require("./Scripture.js");
-const WebVTT=require("./WebVTT");
+const Scripture=require("../bower_components/scripture/Scripture");
+const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 
 class ScriptureVideo {
 

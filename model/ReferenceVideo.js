@@ -1,5 +1,6 @@
-const Publication=require("./Publication.js");
-const WebVTT=require("./WebVTT");
+const Publication=require("../bower_components/theoreference/Publication");
+const Reference=require("../bower_components/theoreference/Reference");
+const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 
 class ReferenceVideo {
 

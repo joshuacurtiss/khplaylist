@@ -1,5 +1,4 @@
-const Publication=require("./Publication.js");
-const WebVTT=require("./WebVTT");
+const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 
 class ExternalMedia {
 
