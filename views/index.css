@@ -88,6 +88,16 @@ body.playlistMode video {
     width: 33vw;
 }
 
+#playlistContainer input[type=text].err {
+    background-color: #450A0A;
+    border: 1px solid #555;
+}
+
+#playlistContainer input[type=text].novtt {
+    background-color: #472300;
+    border: 1px solid #555;
+}
+
 #cornerbuttons {
     position: absolute;
     right: 0;

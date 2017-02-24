@@ -27,6 +27,7 @@ $(document).ready(()=>{
     video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
     $(".powerButton").click(quit);
+    $("#playlistContainer input[type=text]").blur(function(){evaluatePlaylistField(this)});
     
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
@@ -77,7 +78,7 @@ function checkVideo(){
 
                 // TESTING: Automatically proceed to next item. //
                 if(curPlaylistIndex<playlist.length-1) {
-                    setTimeout(`playItem(${curPlaylistIndex+1})`,3000);
+                    setTimeout(`playItem(${curPlaylistIndex+1})`,2000);
                 }
                 // END TESTING //
 
@@ -96,6 +97,26 @@ function toggleFullscreen(){
 
 function toggleVideo(){
     if(!this.paused) this.pause(); else this.play();
+}
+
+function evaluatePlaylistField(fld) {
+    var num=fld.getAttribute("data-num");
+    var txt=fld.value;
+    var item=null;
+    var className="";
+    if( txt.length ) {
+        var scriptures=su.parseScriptures(txt);
+        if( scriptures.length ) {
+            item=svu.createVideo(scriptures[0]);
+        } 
+    }
+    playlist[num-1]=item;
+    if( item ) {
+        fld.value=item.displayName;
+        if( item.list.length==0 ) className="novtt";
+    }
+    else if( $.trim(txt).length ) className="err";
+    fld.className=className;
 }
 
 function quit(){
