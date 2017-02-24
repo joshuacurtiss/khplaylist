@@ -57,8 +57,9 @@ body.playlistMode video {
     border-radius: 8px;
     background-color: #0f0f0f;
     overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
 }
-
 #playlistContainer h1 {
     font-size: 18px;
     color: #999;
@@ -68,34 +69,52 @@ body.playlistMode video {
     background-color: #1c1c1c;
     border-bottom: 2px solid #222;
 }
-
-#playlistContainer form {
-    margin: 15px;
+#playlistContainer ol {
+    list-style: none; 
+    margin:0; 
+    padding:0;
 }
-
+#playlistContainer .handle {
+    cursor: -webkit-grab; 
+    padding: 0px 13px; 
+    font-size: 15px; 
+    color: #aaa;
+}
 #playlistContainer li {
-    margin-bottom: 10px;
+    height: 35px;
+    line-height: 35px;
+    margin-top: -1px;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
 }
 
 #playlistContainer input[type=text] {
-    border: 1px solid #222;
-    background-color: #000;
+    border: 0;
+    background-color: transparent;
     color: #999;
     font-size: 14px;
-    padding: 4px;
-    margin-left: 5px;
-    border-radius: 3px;
+    padding: 4px 0;
+    margin-left: -5px;
     width: 33vw;
 }
 
-#playlistContainer input[type=text].err {
-    background-color: #450A0A;
-    border: 1px solid #555;
+#playlistContainer input::-webkit-input-placeholder {
+    color:#333;
+    font-style: italic;
 }
 
-#playlistContainer input[type=text].novtt {
+#playlistContainer input:focus {
+    outline:none !important;
+}
+
+#playlistContainer li.selected {
+    background-color: #222;
+}
+#playlistContainer li.parseErr {
+    background-color: #450A0A;
+}
+#playlistContainer li.mediaErr {
     background-color: #472300;
-    border: 1px solid #555;
 }
 
 #cornerbuttons {

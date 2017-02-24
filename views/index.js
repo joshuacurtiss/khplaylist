@@ -1,9 +1,10 @@
 const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
-const jQuery=$=require("../bower_components/jquery/dist/jquery");
 const ScriptureUtil=require("../bower_components/scripture/ScriptureUtil");
 const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
+const jQuery=$=require("../bower_components/jquery/dist/jquery");
+require("../bower_components/jquery-ui/jquery-ui");
 
 // Link to main process
 const electron=require("electron");
@@ -13,7 +14,7 @@ var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var svu=new ScriptureVideoUtil(videopath);
 var su=new ScriptureUtil();
-var playlist=[];
+var videos={};
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -27,15 +28,27 @@ $(document).ready(()=>{
     video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
     $(".powerButton").click(quit);
-    $("#playlistContainer input[type=text]").blur(function(){evaluatePlaylistField(this)});
+    $("#playlistContainer input[type=text]")
+        .focus(playlistItemFocus)
+        .blur(playlistItemBlur)
+        .keyup(playlistItemKeypress);
+    
+    // Playlist sortability
+    $("#playlist ol").sortable({
+        axis: "y",
+        cursor: "-webkit-grabbing",
+        handle: ".handle",
+        opacity: 0.7,
+        revert: true
+    });
     
     // TESTING //
     var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
     scriptures.forEach((s)=>{
         var svideo=svu.createVideo(s);
-        playlist.push(svideo);
+        videos[svideo.displayName]=svideo;
     });
-    playItem(0);
+    //playItem(0);
     // END TESTING //
 
     updateListUI();
@@ -43,19 +56,25 @@ $(document).ready(()=>{
 });
 
 function updateListUI() {
-    for( var i=0 ; i<playlist.length ; i++ ) {
-        $(`#fld${i+1}`).val(playlist[i].displayName);
+    for( var key in videos ){
+        var v=videos[key];
+        var $item=$(`#playlist li:last`);
+        $item.find("input").val(v.displayName);
+        addPlaylistRow($item);
     }
 }
 
-function playItem(index) {
-    var item=playlist[index];
-    console.log(`Playing item ${index} (with ${item.list.length} cues).`);
-    video.setAttribute("data-playlist-index",index);
-    video.setAttribute("data-cue-index",0);
-    video.src=item.path;
-    video.currentTime=parseFloat(item.list[0].start);
-    video.play();
+function selectPlaylistItem(key,start) {
+    var item=videos[key];
+    if( start==undefined ) start=false;
+    if( item ) {
+        console.log(`Playing item ${key} (with ${item.list.length} cues).`);
+        video.setAttribute("data-video-key",key);
+        video.setAttribute("data-cue-index",0);
+        video.src=item.path;
+        video.currentTime=parseFloat(item.list[0].start);
+        if(start) video.play();
+    }
 }
 
 function updateVideoUI(){
@@ -63,23 +82,25 @@ function updateVideoUI(){
 }
 
 function checkVideo(){
-    var curPlaylistIndex=Number(video.getAttribute("data-playlist-index"));
+    var key=video.getAttribute("data-video-key");
     var curCueIndex=Number(video.getAttribute("data-cue-index"));
     if( curCueIndex>=0 ) {
-        var cues=playlist[curPlaylistIndex].list;
-        if( video.currentTime>=parseFloat(playlist[curPlaylistIndex].list[curCueIndex].end) ) {
-            if( curCueIndex<cues.length-1 ) {
+        var v=videos[key];
+        if( video.currentTime>=parseFloat(v.list[curCueIndex].end) ) {
+            if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
-                video.currentTime=parseFloat(cues[curCueIndex].start);
+                video.currentTime=parseFloat(v.list[curCueIndex].start);
                 video.setAttribute("data-cue-index",curCueIndex);
             } else {
                 video.pause();
                 video.setAttribute("data-cue-index","-1");
 
                 // TESTING: Automatically proceed to next item. //
+                /*
                 if(curPlaylistIndex<playlist.length-1) {
                     setTimeout(`playItem(${curPlaylistIndex+1})`,2000);
                 }
+                */
                 // END TESTING //
 
             }
@@ -99,9 +120,45 @@ function toggleVideo(){
     if(!this.paused) this.pause(); else this.play();
 }
 
-function evaluatePlaylistField(fld) {
-    var num=fld.getAttribute("data-num");
-    var txt=fld.value;
+function addPlaylistRow(item) {
+    $(`
+        <li>
+            <span class="handle">&#9776;</span>
+            <input type="text" placeholder="Enter scripture or publication reference" />
+        </li>
+    `)
+    .find("input")
+        .blur(playlistItemBlur)
+        .focus(playlistItemFocus)
+        .keyup(playlistItemKeypress)
+        .end()
+    .insertAfter(item);
+}
+function playlistItemFocus(){
+    $(this).parent().addClass("selected");
+    selectPlaylistItem(this.value);
+}
+function playlistItemBlur(){
+    $(this).parent().removeClass("selected");
+    parsePlaylistItem(this);
+}
+function playlistItemKeypress(e){
+    var $input=$(e.target);
+    var $li=$input.parent();
+    var val=$input.val();
+    if( e.key=="Enter" ) {
+        parsePlaylistItem($input);
+        selectPlaylistItem($input.val());
+    } else if( val.length>0 && $li.is(":last-child") ) {
+        addPlaylistRow($li);
+    } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
+        $li.next().remove();
+    }
+    if( val.length==0 ) $li.removeClass("mediaErr parseErr");
+}
+
+function parsePlaylistItem(fld) {
+    var txt=$(fld).val();
     var item=null;
     var className="";
     if( txt.length ) {
@@ -110,13 +167,15 @@ function evaluatePlaylistField(fld) {
             item=svu.createVideo(scriptures[0]);
         } 
     }
-    playlist[num-1]=item;
+    // TODO: Note that this will accumulate objects unless there is some kind of 
+    // garbage collection or way to delete discarded entries.
     if( item ) {
-        fld.value=item.displayName;
-        if( item.list.length==0 ) className="novtt";
+        videos[item.displayName]=item;
+        $(fld).val(item.displayName);
+        if( item.list.length==0 ) className="mediaErr";
     }
-    else if( $.trim(txt).length ) className="err";
-    fld.className=className;
+    else if( $.trim(txt).length ) className="parseErr";
+    $(fld).parent().removeClass("mediaErr parseErr").addClass(className);
 }
 
 function quit(){
