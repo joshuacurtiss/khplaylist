@@ -23,11 +23,16 @@ $(document).ready(()=>{
     $chname=$(".chname");
 
     // Wire up listeners
+    $(window).keydown(windowKeyDownHandler);
+    $(window).keyup(windowKeyUpHandler);
     video.addEventListener("timeupdate", checkVideo, false);
     video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
     $(".powerButton").click(quit);
+    $(".vidbackward").click(prevVideo);
+    $(".vidforward").click(nextVideo);
+    $(".vidplaypause").click(toggleVideo);
     $("#playlistContainer input[type=text]")
         .focus(playlistItemFocus)
         .blur(playlistItemBlur)
@@ -52,6 +57,11 @@ $(document).ready(()=>{
     // END TESTING //
 
     updateListUI();
+    
+    // Select first entry
+    $("#playlist input:first").focus();
+
+    // Done!
     console.log("Initialized!");
 });
 
@@ -68,12 +78,13 @@ function selectPlaylistItem(key,start) {
     var item=videos[key];
     if( start==undefined ) start=false;
     if( item ) {
+        pauseVideo();
         console.log(`Playing item ${key} (with ${item.list.length} cues).`);
         video.setAttribute("data-video-key",key);
         video.setAttribute("data-cue-index",0);
         video.src=item.path;
         video.currentTime=parseFloat(item.list[0].start);
-        if(start) video.play();
+        if(start) playVideo();
     }
 }
 
@@ -92,17 +103,8 @@ function checkVideo(){
                 video.currentTime=parseFloat(v.list[curCueIndex].start);
                 video.setAttribute("data-cue-index",curCueIndex);
             } else {
-                video.pause();
+                pauseVideo();
                 video.setAttribute("data-cue-index","-1");
-
-                // TESTING: Automatically proceed to next item. //
-                /*
-                if(curPlaylistIndex<playlist.length-1) {
-                    setTimeout(`playItem(${curPlaylistIndex+1})`,2000);
-                }
-                */
-                // END TESTING //
-
             }
         }
     } 
@@ -117,7 +119,32 @@ function toggleFullscreen(){
 }
 
 function toggleVideo(){
-    if(!this.paused) this.pause(); else this.play();
+    if(video.paused) playVideo();
+    else pauseVideo();
+}
+function playVideo(){
+    $("#videoControls .vidplaypause").removeClass("fa-play").addClass("fa-pause");
+    video.play();
+}
+function pauseVideo(){
+    $("#videoControls .vidplaypause").removeClass("fa-pause").addClass("fa-play");
+    video.pause();
+}
+function prevVideo(){
+    var $li=$("#playlist .selected");
+    if( $li.length==0 ) {
+        $("#playlist input:first").focus();
+    } else if( ! $li.is(":first-child") ) {
+        $li.prev().find("input").focus();
+    }
+}
+function nextVideo(){
+    var $li=$("#playlist .selected");
+    if( $li.length==0 ) {
+        $("#playlist input:last").focus();
+    } else if( ! $li.is(":last-child") ) {
+        $li.next().find("input").focus();
+    }
 }
 
 function addPlaylistRow(item) {
@@ -136,7 +163,7 @@ function addPlaylistRow(item) {
 }
 function playlistItemFocus(){
     $(this).parents("ol").find(".selected").removeClass("selected");
-    $(this).parent().addClass("selected");
+    $(this).select().parent().addClass("selected");
     selectPlaylistItem(this.value);
 }
 function playlistItemBlur(){
@@ -146,9 +173,12 @@ function playlistItemKeypress(e){
     var $input=$(e.target);
     var $li=$input.parent();
     var val=$input.val();
-    if( e.key=="Enter" ) {
-        parsePlaylistItem($input);
-        selectPlaylistItem($input.val());
+    if( e.key=="ArrowUp" ) {
+        prevVideo();
+        return false;
+    } else if( e.key=="ArrowDown" || e.key=="Enter" ) {
+        nextVideo();
+        return false;
     } else if( val.length>0 && $li.is(":last-child") ) {
         addPlaylistRow($li);
     } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
@@ -176,6 +206,33 @@ function parsePlaylistItem(fld) {
     }
     else if( $.trim(txt).length ) className="parseErr";
     $(fld).parent().removeClass("mediaErr parseErr").addClass(className);
+}
+
+function windowKeyDownHandler(e) {
+    var key=e.key.toLowerCase();
+    if( $(e.target).is("input") ) {
+        return true;
+    } else if( key==" " ) {
+        toggleVideo();
+    } else if( key=="q" || key=="x" ) {
+        quit();
+    } else if( key=="f" || (key=="escape" && $("body").hasClass("fullscreenMode")) ) {
+        e.preventDefault();
+        toggleFullscreen();
+    }
+}
+
+function windowKeyUpHandler(e) {
+    var key=e.key.toLowerCase();
+    if( $(e.target).is("input") ) {
+        return true;
+    } else if( key=="arrowup" || key=="arrowleft" ) {
+        e.preventDefault();
+        prevVideo();
+    } else if( key=="arrowdown" || key=="arrowright" ) {
+        e.preventDefault();
+        nextVideo();
+    }
 }
 
 function quit(){

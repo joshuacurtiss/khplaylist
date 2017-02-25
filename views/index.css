@@ -47,6 +47,29 @@ body.playlistMode video {
     margin-top: 25vh;
 }
 
+body.playlistMode #videoControls {
+    margin-top: 2vh;
+    text-align: center;
+}
+#videoControls i {
+    font-size: 3vh;
+    background-color: #333;
+    margin: 0 2vw;
+    padding: 10px;
+    border-radius: 50%;
+    opacity: 0.8;
+    cursor: pointer;
+}
+#videoControls .fa-play {
+    padding: 10px 7px 10px 13px;
+}
+#videoControls i:hover {
+    background-color: #444;
+}
+#videoControls i:active {
+    background-color: #888;
+}
+
 #playlistContainer {
     position:absolute;
     width: 43vw;
@@ -96,6 +119,10 @@ body.playlistMode video {
     padding: 4px 0;
     margin-left: -5px;
     width: 33vw;
+}
+
+#playlistContainer input[type=text]::selection {
+    background-color:#aaa;
 }
 
 #playlistContainer input::-webkit-input-placeholder {
