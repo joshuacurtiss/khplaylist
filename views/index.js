@@ -135,11 +135,11 @@ function addPlaylistRow(item) {
     .insertAfter(item);
 }
 function playlistItemFocus(){
+    $(this).parents("ol").find(".selected").removeClass("selected");
     $(this).parent().addClass("selected");
     selectPlaylistItem(this.value);
 }
 function playlistItemBlur(){
-    $(this).parent().removeClass("selected");
     parsePlaylistItem(this);
 }
 function playlistItemKeypress(e){
