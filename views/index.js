@@ -1,3 +1,8 @@
+// Link to main process
+const electron=require("electron");
+const main=electron.remote.require("./main.js");
+
+// Dependencies
 const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
@@ -6,10 +11,7 @@ const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 require("../bower_components/jquery-ui/jquery-ui");
 
-// Link to main process
-const electron=require("electron");
-const main=electron.remote.require("./main.js");
-
+// Globals
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var svu=new ScriptureVideoUtil(videopath);
@@ -38,6 +40,9 @@ $(document).ready(()=>{
         .blur(playlistItemBlur)
         .keyup(playlistItemKeypress);
     
+    // Restore playlist state
+    loadState();
+    
     // Playlist sortability
     $("#playlist ol").sortable({
         axis: "y",
@@ -47,17 +52,6 @@ $(document).ready(()=>{
         revert: true
     });
     
-    // TESTING //
-    var scriptures=su.parseScriptures("Ruth 2:4; Gen 3:15-16, 22; Rev 21:3, 4");
-    scriptures.forEach((s)=>{
-        var svideo=svu.createVideo(s);
-        videos[svideo.displayName]=svideo;
-    });
-    //playItem(0);
-    // END TESTING //
-
-    updateListUI();
-    
     // Select first entry
     $("#playlist input:first").focus();
 
@@ -65,13 +59,40 @@ $(document).ready(()=>{
     console.log("Initialized!");
 });
 
-function updateListUI() {
-    for( var key in videos ){
-        var v=videos[key];
-        var $item=$(`#playlist li:last`);
-        $item.find("input").val(v.displayName);
-        addPlaylistRow($item);
+function loadState() {
+    var state;
+    try {
+        state=require("../data/state");
+    } catch(e) {
+        console.log("Error loading state. Using defaults.");
+        state=require("../data/default");
+    } 
+    $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
+    for( var item of state.playlist ) {
+        var $li=$("#playlist li:last");
+        var $input=$li.find("input");
+        $input.val(item.text);
+        parsePlaylistItem($input);
+        addPlaylistRow($li);
     }
+}
+
+function saveState() {
+    var list=[];
+    $("#playlist li").each((index,el)=>{
+        var txt=$(el).find("input").val();
+        if(txt.length) {
+            list.push({
+                "text": txt,
+                "after": ""
+            });
+        }
+    });
+    var state={
+        "mode": $("body").attr("class"),
+        "playlist": list
+    };
+    fs.writeJsonSync(`${__dirname}/../data/state.json`,state);
 }
 
 function selectPlaylistItem(key,start) {
@@ -236,5 +257,6 @@ function windowKeyUpHandler(e) {
 }
 
 function quit(){
+    saveState();
     main.quit();
 }
