@@ -102,10 +102,12 @@ function selectPlaylistItem(key,start) {
         pauseVideo();
         console.log(`Playing item ${key} (with ${item.list.length} cues).`);
         video.setAttribute("data-video-key",key);
-        video.setAttribute("data-cue-index",0);
-        video.src=item.path;
-        video.currentTime=parseFloat(item.list[0].start);
-        if(start) playVideo();
+        video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
+        if( item.list.length ) {
+            video.src=item.path;
+            video.currentTime=parseFloat(item.list[0].start);
+            if(start) playVideo();
+        }
     }
 }
 
