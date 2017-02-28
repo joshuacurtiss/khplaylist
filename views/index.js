@@ -53,11 +53,17 @@ $(document).ready(()=>{
     });
     
     // Select first entry
-    $("#playlist input:first").focus();
+    selectFirstItem();
 
     // Done!
     console.log("Initialized!");
 });
+
+function selectFirstItem(){
+    var $firstli=$("#playlist li:first");
+    if( $firstli.hasClass("parsing") ) setTimeout(selectFirstItem,100);
+    else $firstli.find("input").focus();
+}
 
 function loadState() {
     var state;
