@@ -62,18 +62,22 @@ class ScriptureVideoUtil {
             } else if( !webvttFile ) {
                 // If no webvtt file, then create one and send stuff.
                 console.log(`No webvtt file for ${videoFile}. Make one now.`);
-                this.videoApp.createWebVTT(videoFile,(err,webvtt)=>{
-                    if( err ) {
-                        console.error(err.toString());
-                        cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ScriptureVideo(scripture,videoFile));
-                    } else {
-                        var webvttpath=videoFile+".webvtt";
-                        this.webvtts.push(webvttpath);
-                        fs.writeFileSync(webvttpath, webvtt.toString());
-                        console.log(`Created ${webvttpath}!`);
-                        cb(null,new ScriptureVideo(scripture,videoFile,webvtt));
-                    } 
-                });
+                if( this.videoApp ) {
+                    this.videoApp.createWebVTT(videoFile,(err,webvtt)=>{
+                        if( err ) {
+                            console.error(err.toString());
+                            cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ScriptureVideo(scripture,videoFile));
+                        } else {
+                            var webvttpath=videoFile+".webvtt";
+                            this.webvtts.push(webvttpath);
+                            fs.writeFileSync(webvttpath, webvtt.toString());
+                            console.log(`Created ${webvttpath}!`);
+                            cb(null,new ScriptureVideo(scripture,videoFile,webvtt));
+                        } 
+                    });
+                } else {
+                    cb({code:"indexerr",tag:"Index Error",message:"No application available to index video!"},new ScriptureVideo(scripture,videoFile));
+                }
             } else {
                 // All is well. Read the webvtt file and send stuff.
                 fs.readFile(webvttFile,{encoding:"UTF-8"},(err,webvtt)=>{
