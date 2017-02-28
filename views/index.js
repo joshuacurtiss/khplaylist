@@ -123,6 +123,7 @@ function checkVideo(){
     var curCueIndex=Number(video.getAttribute("data-cue-index"));
     if( curCueIndex>=0 ) {
         var v=videos[key];
+        $("#playlist .selected .progress").css("width",`${v.calcPlayPercentage(curCueIndex,video.currentTime)}%`);
         if( video.currentTime>=parseFloat(v.list[curCueIndex].end) ) {
             if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
@@ -133,7 +134,7 @@ function checkVideo(){
                 video.setAttribute("data-cue-index","-1");
             }
         }
-    } 
+    }
 }
 
 function toggleFullscreen(){
@@ -176,6 +177,7 @@ function nextVideo(){
 function addPlaylistRow(item) {
     var newli=$(`
         <li class="new">
+            <span class="progress"></span>
             <span class="handle">&#9776;</span>
             <input type="text" placeholder="Enter scripture or publication reference" />
             <span class="tag"></span>
@@ -191,8 +193,11 @@ function addPlaylistRow(item) {
     else $("#playlist ol").append(newli);
 }
 function playlistItemFocus(){
-    $(this).parents("ol").find(".selected").removeClass("selected");
-    $(this).select().parent().addClass("selected");
+    $(this)
+        .select()
+        .parents("ol").find(".selected").removeClass("selected").end().end()
+        .parent().addClass("selected")
+        .find(".progress").css("width",0);
     selectPlaylistItem(this.value);
 }
 function playlistItemBlur(){
