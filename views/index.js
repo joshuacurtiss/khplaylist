@@ -233,6 +233,7 @@ function parsePlaylistItem(fld) {
     var item=null;
     var className="valid";
     var tagText="";
+    var tagHint="";
     var $li=$(fld).parent();
     if( txt.length ) {
         console.log(`Parsing field with "${txt}"...`)
@@ -243,6 +244,7 @@ function parsePlaylistItem(fld) {
                 if(err) {
                     console.log(err);
                     tagText=err.tag;
+                    tagHint=err.message;
                     className="mediaErr";
                 } else {
                     // TODO: Note that this will accumulate objects unless there is some kind of 
@@ -251,7 +253,7 @@ function parsePlaylistItem(fld) {
                     $(fld).val(item.displayName);
                 }
                 $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
-                    .find(".tag").text(tagText).end()
+                    .find(".tag").text(tagText).attr("title",tagHint).end()
                     .find("input").val(item.displayName).end();
             });
         }
