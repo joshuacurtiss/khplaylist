@@ -239,6 +239,8 @@ function parsePlaylistItem(fld) {
                     tagText=err.tag;
                     className="mediaErr";
                 } else {
+                    // TODO: Note that this will accumulate objects unless there is some kind of 
+                    // garbage collection or way to delete discarded entries.
                     videos[item.displayName]=item;
                     $(fld).val(item.displayName);
                 }
@@ -253,25 +255,6 @@ function parsePlaylistItem(fld) {
                 .find(".tag").text(tagText);
         }
     }
-    // TODO: Note that this will accumulate objects unless there is some kind of 
-    // garbage collection or way to delete discarded entries.
-    /*
-    if( item ) {
-        videos[item.displayName]=item;
-        $(fld).val(item.displayName);
-        if( item.list.length==0 && $(fld).parent().hasClass("indexing") ) {
-            className="mediaErr";
-            tagText="Media Missing";
-        } else if( item.list.length==0 ) {
-            className="indexing";
-            tagText="Indexing Media"
-            indexPlaylistItem(fld,item);
-        }
-    }
-    else if( $.trim(txt).length ) {
-        className="parseErr";
-    }
-    */
 }
 
 function windowKeyDownHandler(e) {
