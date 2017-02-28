@@ -1,6 +1,8 @@
 let ScriptureVideo=require("./ScriptureVideo");
 let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
 let fs=require("fs-extra");
+let path=require("path");
+let escapeStringRegexp=require("escape-string-regexp");
 
 class ScriptureVideoUtil {
 
@@ -13,19 +15,19 @@ class ScriptureVideoUtil {
     }
 
     get videopath(){return this._videopath}
-    set videopath(path) {
-        this._videopath=path||"";
+    set videopath(videopath) {
+        this._videopath=videopath||"";
         // Keep a list of all the videos
         var pathwalk=[];
         try {
             pathwalk=fs.walkSync(this.videopath);
         } catch(err) {}
         var videos=[], webvtts=[], f, ext;
-        for( var path of pathwalk ) {
-            f=path.split("/").pop();
+        for( var p of pathwalk ) {
+            f=p.split(path.sep).pop();
             ext=f.split(".").pop().toLowerCase();
-            if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(path);
-            else if( ScriptureVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(path);
+            if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
+            else if( ScriptureVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(p);
         }
         console.log(`Found ${pathwalk.length} items in video path, resulting in ${videos.length} videos and ${webvtts.length} webvtt files.`);
         this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
@@ -43,7 +45,7 @@ class ScriptureVideoUtil {
             var booknum=(scripture.book.num<10?"0":"")+scripture.book.num.toString();
             var chapter=(scripture.chapter<10?"0":"")+scripture.chapter.toString();
             var baseFileRegex=
-                "\/\\w+_"+
+                escapeStringRegexp(path.sep)+"\\w+_"+
                 booknum+"_"+
                 scripture.book.symbol+"_"+
                 "\\w+_"+
