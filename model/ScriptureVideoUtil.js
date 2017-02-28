@@ -1,4 +1,5 @@
 let ScriptureVideo=require("./ScriptureVideo");
+let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
 let fs=require("fs-extra");
 
 class ScriptureVideoUtil {
@@ -6,6 +7,8 @@ class ScriptureVideoUtil {
     constructor(videopath) {
         // Video path is the path under which all video files are housed. Subdirectories ok.
         this.videopath=videopath;
+        this.videoAppController=new WrapperController();
+        this.videoApp=this.videoAppController.wrapper;
         return this;
     }
 
@@ -34,7 +37,7 @@ class ScriptureVideoUtil {
      *  that knows how to exactly play that scripture from the video.
      * 
      */
-    createVideo(scripture) {
+    createVideo(scripture,cb) {
         // RegEx: /something_BOOKNUM_BOOKSYMBOL_something_CHAPTER_r999p.ext
         if( scripture.valid() ) {
             var booknum=(scripture.book.num<10?"0":"")+scripture.book.num.toString();
@@ -50,12 +53,32 @@ class ScriptureVideoUtil {
             var webvttRegex=new RegExp(baseFileRegex+"\\.\\w{3,6}$","i");
             var videoFile=this.videos.find((value)=>{return videoRegex.test(value)});
             var webvttFile=this.webvtts.find((value)=>{return webvttRegex.test(value)});
-            // TODO: Handle if file doesn't exist, create webvtt on the fly.
-            var webvtt="";
-            try {
-                webvtt=fs.readFileSync(webvttFile,"UTF-8");
-            } catch (error) {}
-            return new ScriptureVideo(scripture,videoFile,webvtt);
+            if( !videoFile ) {
+                // If not video file, just return error indicating no video file.
+                console.log(`No video file for ${scripture.book.name} chapter ${scripture.chapter}.`);
+                cb({code:"novideo",tag:"Not Found",message:"Video file could not be found!"},new ScriptureVideo(scripture));
+            } else if( !webvttFile ) {
+                // If no webvtt file, then create one and send stuff.
+                console.log(`No webvtt file for ${videoFile}. Make one now.`);
+                this.videoApp.createWebVTT(videoFile,(err,webvtt)=>{
+                    if( err ) {
+                        console.error(err.toString());
+                        cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ScriptureVideo(scripture,videoFile));
+                    } else {
+                        var webvttpath=videoFile+".webvtt";
+                        this.webvtts.push(webvttpath);
+                        fs.writeFileSync(webvttpath, webvtt.toString());
+                        console.log(`Created ${webvttpath}!`);
+                        cb(null,new ScriptureVideo(scripture,videoFile,webvtt));
+                    } 
+                });
+            } else {
+                // All is well. Read the webvtt file and send stuff.
+                fs.readFile(webvttFile,{encoding:"UTF-8"},(err,webvtt)=>{
+                    console.log(`Read ${webvttFile}.`);
+                    cb(null,new ScriptureVideo(scripture,videoFile,webvtt));
+                });
+            }
         }
     }
 

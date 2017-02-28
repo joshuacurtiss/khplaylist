@@ -14,7 +14,8 @@ class ScriptureVideo {
 
     get webvtt() {return this._webvtt}
     set webvtt(webvtt) {
-        this._webvtt=new WebVTT(webvtt);
+        if( webvtt instanceof WebVTT ) this._webvtt=webvtt;
+        else this._webvtt=new WebVTT(webvtt);
     }
 
     get scripture() {return this._scripture}
