@@ -120,7 +120,7 @@ function mountPlaylistItem(li,start) {
     if( item ) {
         pauseVideo();
         console.log(`Mounting "${key}" (with ${item.list.length} cues).`);
-        $("#text").text("");
+        $("#text").hide();
         video.setAttribute("data-video-key",key);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
@@ -132,7 +132,7 @@ function mountPlaylistItem(li,start) {
         console.log(`Nothing found for "${key}". Blanking video.`);
         video.src="";
         video.currentTime=0;
-        $("#text").text(key).css("line-height",$(video).css("height"));
+        $("#text").text(key).css("line-height",$(video).css("height")).show();
     }
 }
 
