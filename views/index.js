@@ -101,12 +101,13 @@ function saveState() {
     fs.writeJsonSync(`${__dirname}/../data/state.json`,state);
 }
 
-function selectPlaylistItem(key,start) {
+function mountPlaylistItem(li,start) {
+    var key=$(li).find("input").val();
     var item=videos[key];
     if( start==undefined ) start=false;
     if( item ) {
         pauseVideo();
-        console.log(`Playing item ${key} (with ${item.list.length} cues).`);
+        console.log(`Mounting "${key}" (with ${item.list.length} cues).`);
         video.setAttribute("data-video-key",key);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
@@ -115,6 +116,7 @@ function selectPlaylistItem(key,start) {
             if(start) playVideo();
         }
     } else {
+        console.log(`Nothing found for "${key}". Blanking video.`);
         video.src="";
         video.currentTime=0;
     }
@@ -166,17 +168,19 @@ function pauseVideo(){
 function prevVideo(){
     var $li=$("#playlist .selected");
     if( $li.length==0 ) {
-        $("#playlist input:first").focus();
+        selectPlaylistItem($("#playlist li:first"));
     } else if( ! $li.is(":first-child") ) {
-        $li.prev().find("input").focus();
+        selectPlaylistItem($li.prev());
+    } else {
+        mountPlaylistItem($li);
     }
 }
 function nextVideo(){
     var $li=$("#playlist .selected");
     if( $li.length==0 ) {
-        $("#playlist input:last").focus();
+        selectPlaylistItem($("#playlist li:last"));
     } else if( ! $li.is(":last-child") ) {
-        $li.next().find("input").focus();
+        selectPlaylistItem($li.next());
     }
 }
 
@@ -193,23 +197,39 @@ function addPlaylistRow(item) {
     .find("input")
         .blur(playlistItemBlur)
         .focus(playlistItemFocus)
-        .keyup(playlistItemKeypress)
+        .keyup(playlistItemKeyUp)
+        .keydown(playlistItemKeyDown)
     .end();
     if( item ) $(newli).insertAfter(item);
     else $("#playlist ol").append(newli);
 }
 function playlistItemFocus(){
-    $(this)
-        .select()
+    var $li=$(this).parent();
+    if( ! $li.hasClass("selected") ) selectPlaylistItem($(this).parent());
+}
+function selectPlaylistItem(li) {
+    $(li)
         .parents("ol").find(".selected").removeClass("selected").end().end()
-        .parent().addClass("selected")
-        .find(".progress").css("width",0);
-    selectPlaylistItem(this.value);
+        .addClass("selected")
+        .find(".progress").css("width",0).end()
+        .find("input").select();
+    mountPlaylistItem(li);
 }
 function playlistItemBlur(){
     parsePlaylistItem(this);
 }
-function playlistItemKeypress(e){
+function playlistItemKeyDown(e){
+    var key=e.key.toLowerCase();
+    var fullSelection=(e.target.value==window.getSelection().toString());
+    if( fullSelection && key==" " ) {
+        toggleVideo();
+        return false;
+    } else if( fullSelection && key=="f" ) {
+        toggleFullscreen();
+        return false;
+    }
+}
+function playlistItemKeyUp(e){
     var $input=$(e.target);
     var $li=$input.parent();
     var val=$input.val();
