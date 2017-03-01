@@ -19,7 +19,8 @@ body.fullscreenMode .ui {opacity:0;}
 
 body.fullscreenMode #text {
     left: 5vw;
-    top: 40vh;
+    top: 0;
+    bottom: 0;
     width: 90vw;
     font-size: 8vh;
 }
@@ -56,24 +57,27 @@ body.fullscreenMode video {
 body.playlistMode .fullscreenMode {display:none;}
 
 body.playlistMode #text {
-    left: 8.8vw;
-    top: 38vh;
-    width: 32.4vw;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    padding:0 10%;
     font-size: 2.5vh;
 }
 
 body.playlistMode #videoContainer {
     position: absolute;
+    top: 25vh;
+    left: 7vw;
     width: 36vw;
-    height: 100vh;
-    margin-left: 7vw;
+    height: 70vh;
 }
 
 body.playlistMode video {
+    position: relative;
     width: 100%;
     border: 2px solid #ccc;
     border-radius: 8px;
-    margin-top: 25vh;
 }
 
 body.playlistMode #videoControls {
@@ -84,13 +88,13 @@ body.playlistMode #videoControls {
     font-size: 3vh;
     background-color: #333;
     margin: 0 2vw;
-    padding: 10px;
+    padding: 1.3vh;
     border-radius: 50%;
     opacity: 0.8;
     cursor: pointer;
 }
 #videoControls .fa-play {
-    padding: 10px 7px 10px 13px;
+    padding: 1.3vh 1vh 1.3vh 1.6vh;
 }
 #videoControls i:hover {
     background-color: #444;
@@ -103,8 +107,8 @@ body.playlistMode #videoControls {
     position:absolute;
     width: 43vw;
     right: 8vw;
-    top: 20vh;
-    height: 60vh;
+    top: 10vh;
+    height: 80vh;
     border: 2px solid #222;
     border-radius: 8px;
     background-color: #0f0f0f;
@@ -113,11 +117,11 @@ body.playlistMode #videoControls {
     -webkit-user-select: none;
 }
 #playlistContainer h1 {
-    font-size: 18px;
+    font-size: 2.75vh;
     color: #999;
     text-align:center;
     margin:0;
-    padding:5px;
+    padding:0.7vh;
     background-color: #1c1c1c;
     border-bottom: 2px solid #222;
 }
@@ -212,16 +216,16 @@ body.playlistMode #videoControls {
 
 .cornerbuttons {
     position: absolute;
-    right: 2vw;
+    right: 1vw;
     bottom: 0;
-    width: 60px;
 }
 
 .togglebutton {
-    font-size: 24px;
+    display:block;
+    font-size: 3vh;
     background-color: #333;
     margin: 0 0 2vh 0;
-    padding: 12px;
+    padding: 1.3vh;
     border-radius: 50%;
     opacity: 0.8;
     cursor: pointer;

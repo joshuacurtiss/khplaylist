@@ -130,9 +130,9 @@ function mountPlaylistItem(li,start) {
         }
     } else {
         console.log(`Nothing found for "${key}". Blanking video.`);
-        $("#text").text(key);
         video.src="";
         video.currentTime=0;
+        $("#text").text(key).css("line-height",$(video).css("height"));
     }
 }
 
@@ -166,6 +166,7 @@ function toggleFullscreen(){
     } else {
         $('body').removeClass('playlistMode').addClass('fullscreenMode');
     }
+    $("#text").css("line-height",$(video).css("height"));
 }
 
 function toggleVideo(){
