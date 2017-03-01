@@ -62,7 +62,7 @@ $(document).ready(()=>{
 function selectFirstItem(){
     var $firstli=$("#playlist li:first");
     if( $firstli.hasClass("parsing") ) setTimeout(selectFirstItem,100);
-    else $firstli.find("input").focus();
+    else selectPlaylistItem($firstli);
 }
 
 function loadState() {
