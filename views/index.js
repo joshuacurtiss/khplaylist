@@ -120,6 +120,7 @@ function mountPlaylistItem(li,start) {
     if( item ) {
         pauseVideo();
         console.log(`Mounting "${key}" (with ${item.list.length} cues).`);
+        $("#text").text("");
         video.setAttribute("data-video-key",key);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
@@ -129,6 +130,7 @@ function mountPlaylistItem(li,start) {
         }
     } else {
         console.log(`Nothing found for "${key}". Blanking video.`);
+        $("#text").text(key);
         video.src="";
         video.currentTime=0;
     }
@@ -167,7 +169,7 @@ function toggleFullscreen(){
 }
 
 function toggleVideo(){
-    if(video.paused) playVideo();
+    if(video.paused && video.readyState>2) playVideo();
     else pauseVideo();
 }
 function playVideo(){
