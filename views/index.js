@@ -38,7 +38,19 @@ $(document).ready(()=>{
     $(".vidbackward").click(prevVideo);
     $(".vidforward").click(nextVideo);
     $(".vidplaypause").click(toggleVideo);
-    
+
+    // Mouse movement handler (for fullscreen mode)
+    var uiTimeout, uiStatus=false;
+    $(window).mousemove(()=>{
+        var currentStatus=uiStatus;
+        uiStatus=true;
+        if( ! currentStatus ) $(".fullscreenMode.ui").animate({"opacity":0.8},400);
+        if(uiTimeout) clearTimeout(uiTimeout);
+        uiTimeout=setTimeout(()=>{
+            $(".fullscreenMode.ui").animate({"opacity":0},400,()=>{uiStatus=false});
+        },3000);
+    });
+
     // Set up and restore playlist state
     addPlaylistRow();
     loadState();

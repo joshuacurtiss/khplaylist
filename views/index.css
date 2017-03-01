@@ -10,6 +10,8 @@ body {
 
 body.fullscreenMode .playlistMode {display:none;}
 
+body.fullscreenMode .ui {opacity:0;}
+
 body.fullscreenMode video {
     position:absolute;
     height: 100vh;
@@ -189,7 +191,7 @@ body.playlistMode #videoControls {
     background-color: #734a1e;
 }
 
-#cornerbuttons {
+.cornerbuttons {
     position: absolute;
     right: 2vw;
     bottom: 0;
