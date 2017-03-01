@@ -29,6 +29,14 @@ body.fullscreenMode video {
     background-color: #111;
 }
 
+.fullscreenMode.progress {
+    position:absolute;
+    bottom:0;
+    background-color:#222;
+    opacity: 0.7;
+    height:0.75vh;
+}
+
 /***** PLAYLIST *****/
 
 body.playlistMode .fullscreenMode {display:none;}

@@ -131,7 +131,8 @@ function checkVideo(){
     var curCueIndex=Number(video.getAttribute("data-cue-index"));
     if( curCueIndex>=0 ) {
         var v=videos[key];
-        $("#playlist .selected .progress").css("width",`${v.calcPlayPercentage(curCueIndex,video.currentTime)}%`);
+        $("#playlist .selected .progress, .fullscreenMode.progress")
+            .css("width",`${v.calcPlayPercentage(curCueIndex,video.currentTime)}%`);
         if( video.currentTime>=parseFloat(v.list[curCueIndex].end) ) {
             if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
