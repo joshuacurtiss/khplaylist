@@ -48,7 +48,7 @@ $(document).ready(()=>{
         if(uiTimeout) clearTimeout(uiTimeout);
         uiTimeout=setTimeout(()=>{
             $(".fullscreenMode.ui").animate({"opacity":0},400,()=>{uiStatus=false});
-        },3000);
+        },2000);
     });
 
     // Set up and restore playlist state
