@@ -273,6 +273,8 @@ function parsePlaylistItem(fld) {
     var $li=$(fld).parent();
     if( txt.length ) {
         console.log(`Parsing field with "${txt}"...`)
+        // TODO: If the key already exists in `videos` variable, just use it instead of 
+        //       reparsing. This is more efficient and negates recreating objects.
         var scriptures=su.parseScriptures(txt);
         if( scriptures.length ) {
             $li.addClass("parsing");
