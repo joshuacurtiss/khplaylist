@@ -19,7 +19,6 @@ var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var svu=new ScriptureVideoUtil(videopath);
 var su=new ScriptureUtil();
 var videoAppController=new WebVttWrapperController()
-var videos={};
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -114,8 +113,10 @@ function saveState() {
 }
 
 function mountPlaylistItem(li,start) {
-    var key=$(li).find("input").val();
-    var item=videos[key];
+    var $li=$(li);
+    var key=$li.find("input").val();
+    var livideos=$li.prop("videos");
+    var item=livideos[0];
     if( start==undefined ) start=false;
     if( item ) {
         pauseVideo();
@@ -132,6 +133,7 @@ function mountPlaylistItem(li,start) {
         console.log(`Nothing found for "${key}". Blanking video.`);
         video.src="";
         video.currentTime=0;
+        video.setAttribute("data-cue-index",-1);
         $("#text").text(key).css("line-height",$(video).css("height")).show();
     }
 }
@@ -141,10 +143,9 @@ function updateVideoUI(){
 }
 
 function checkVideo(){
-    var key=video.getAttribute("data-video-key");
     var curCueIndex=Number(video.getAttribute("data-cue-index"));
     if( curCueIndex>=0 ) {
-        var v=videos[key];
+        var v=$("#playlist li.selected").prop("videos")[0];
         $("#playlist .selected .progress, .fullscreenMode.progress")
             .css("width",`${v.calcPlayPercentage(curCueIndex,video.currentTime)}%`);
         if( video.currentTime>=parseFloat(v.list[curCueIndex].end) ) {
@@ -210,6 +211,7 @@ function addPlaylistRow(item) {
             <i class="fa fa-refresh fa-spin fa-fw loader"></i>
         </li>
     `)
+    .prop("videos",[])
     .find("input")
         .blur(playlistItemBlur)
         .focus(playlistItemFocus)
@@ -271,11 +273,13 @@ function parsePlaylistItem(fld) {
     var tagText="";
     var tagHint="";
     var $li=$(fld).parent();
+    var livideos=$li.prop("videos");
     if( txt.length ) {
         console.log(`Parsing field with "${txt}"...`)
-        // TODO: If the key already exists in `videos` variable, just use it instead of 
+        // TODO: Check if text is same as previous parsing to avoid unnecessary 
         //       reparsing. This is more efficient and negates recreating objects.
         var scriptures=su.parseScriptures(txt);
+        livideos=[];
         if( scriptures.length ) {
             $li.addClass("parsing");
             svu.createVideo(scriptures[0],(err,item)=>{
@@ -285,12 +289,11 @@ function parsePlaylistItem(fld) {
                     tagHint=err.message;
                     className="mediaErr";
                 } else {
-                    // TODO: Note that this will accumulate objects unless there is some kind of 
-                    // garbage collection or way to delete discarded entries.
-                    videos[item.displayName]=item;
+                    livideos.push(item);
                     $(fld).val(item.displayName);
                 }
                 $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+                    .prop("videos",livideos)
                     .find(".tag").text(tagText).attr("title",tagHint).end()
                     .find("input").val(item.displayName).end();
             });
@@ -298,6 +301,7 @@ function parsePlaylistItem(fld) {
         else if( $.trim(txt).length ) {
             className="parseErr";
             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+                .prop("videos",[])
                 .find(".tag").text(tagText);
         }
     }
