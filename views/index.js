@@ -112,17 +112,16 @@ function saveState() {
     fs.writeJsonSync(`${__dirname}/../data/state.json`,state);
 }
 
-function mountPlaylistItem(li,start) {
+function mountPlaylistItem(li,index=0,start=false) {
     var $li=$(li);
     var key=$li.find("input").val();
     var livideos=$li.prop("videos");
-    var item=livideos[0];
-    if( start==undefined ) start=false;
+    var item=livideos[index];
     if( item ) {
         pauseVideo();
-        console.log(`Mounting "${key}" (with ${item.list.length} cues).`);
+        console.log(`Mounting #${index} "${item.displayName}" (with ${item.list.length} cues).`);
         $("#text").hide();
-        video.setAttribute("data-video-key",key);
+        video.setAttribute("data-video-index",index);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
             video.src=item.path;
@@ -133,6 +132,7 @@ function mountPlaylistItem(li,start) {
         console.log(`Nothing found for "${key}". Blanking video.`);
         video.src="";
         video.currentTime=0;
+        video.setAttribute("data-video-index",-1);
         video.setAttribute("data-cue-index",-1);
         $("#text").text(key).css("line-height",$(video).css("height")).show();
     }
@@ -143,23 +143,55 @@ function updateVideoUI(){
 }
 
 function checkVideo(){
+    var curVideoIndex=Number(video.getAttribute("data-video-index"));
     var curCueIndex=Number(video.getAttribute("data-cue-index"));
-    if( curCueIndex>=0 ) {
-        var v=$("#playlist li.selected").prop("videos")[0];
+    if( curCueIndex>=0 && curVideoIndex>=0 ) {
+        var $li=$("#playlist li.selected");
+        var videos=$li.prop("videos");
+        var v=videos[curVideoIndex];
+        var endTime=parseFloat((v.list.length>curCueIndex)?v.list[curCueIndex].end:0);
         $("#playlist .selected .progress, .fullscreenMode.progress")
-            .css("width",`${v.calcPlayPercentage(curCueIndex,video.currentTime)}%`);
-        if( video.currentTime>=parseFloat(v.list[curCueIndex].end) ) {
+            .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,video.currentTime)}%`);
+        if( video.currentTime>=endTime ) {
             if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
+                console.log("Moving to cue #"+curCueIndex+".");
                 video.currentTime=parseFloat(v.list[curCueIndex].start);
                 video.setAttribute("data-cue-index",curCueIndex);
+            } else if( curVideoIndex<videos.length-1 ) {
+                mountPlaylistItem($li,curVideoIndex+1,true);
             } else {
                 pauseVideo();
+                video.setAttribute("data-video-index","-1");
                 video.setAttribute("data-cue-index","-1");
             }
         }
     }
 }
+
+function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
+    var sum=0, cueMax;
+    // Calculate sum of all past videos/cues played so far
+    for( var vi=0 ; vi<=videoIndex ; vi++ ) {
+        cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
+        for( ci=0 ; ci<cueMax ; ci++ )
+            if( videos[vi].list.length>ci )
+                sum+=videos[vi].list[ci].end-videos[vi].list[ci].start;
+    }
+    // Now add time for the current video
+    if( videos[videoIndex].list.length>cueIndex )
+        sum+=pos-videos[videoIndex].list[cueIndex].start;
+    // Figure out total play time
+    var fullPlayLength=0;
+    for( vi=0 ; vi<videos.length ; vi++ ) fullPlayLength+=videos[vi].calcPlayLength();
+    // And calculate percentage
+    var pct=parseInt(100*sum/fullPlayLength);
+    // Protect from math gone wild
+    if(pct>100) pct=100; 
+    else if( pct<0 ) pct=0;
+    return pct;
+}
+
 
 function toggleFullscreen(){
     if( $('body').hasClass('fullscreenMode') ) {
@@ -279,24 +311,29 @@ function parsePlaylistItem(fld) {
         // TODO: Check if text is same as previous parsing to avoid unnecessary 
         //       reparsing. This is more efficient and negates recreating objects.
         var scriptures=su.parseScriptures(txt);
-        livideos=[];
+        var parseCount=scriptures.length;
+        livideos=new Array(scriptures.length);
         if( scriptures.length ) {
             $li.addClass("parsing");
-            svu.createVideo(scriptures[0],(err,item)=>{
-                if(err) {
-                    console.log(err);
-                    tagText=err.tag;
-                    tagHint=err.message;
-                    className="mediaErr";
-                } else {
-                    livideos.push(item);
-                    $(fld).val(item.displayName);
-                }
-                $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
-                    .prop("videos",livideos)
-                    .find(".tag").text(tagText).attr("title",tagHint).end()
-                    .find("input").val(item.displayName).end();
-            });
+            for( var i=0 ; i<scriptures.length ; i++ ) {
+                svu.createVideo(scriptures[i],(err,item)=>{
+                    livideos[scriptures.indexOf(item.scripture)]=item;
+                    if(err) {
+                        console.log(err);
+                        tagText=err.tag;
+                        tagHint=err.message;
+                        className="mediaErr";
+                    }
+                    if( --parseCount<=0 ) {
+                        let dispNames=[];
+                        livideos.forEach((x)=>{dispNames.push(x.displayName)});
+                        $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+                            .prop("videos",livideos)
+                            .find(".tag").text(tagText).attr("title",tagHint).end()
+                            .find("input").val(dispNames.join("; ")).end();
+                    }
+                });
+            }
         }
         else if( $.trim(txt).length ) {
             className="parseErr";

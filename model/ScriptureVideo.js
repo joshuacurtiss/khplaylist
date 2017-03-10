@@ -46,16 +46,6 @@ class ScriptureVideo {
         return sum;
     }
 
-    calcPlayPercentage(index,pos) {
-        var sum=0;
-        if( index>0 ) for( var i=0 ; i<index ; i++ ) sum+=this.list[i].end-this.list[i].start;
-        sum+=pos-this.list[index].start;
-        var pct=parseInt(100*sum/this.calcPlayLength());
-        if(pct>100) pct=100; 
-        else if( pct<0 ) pct=0;
-        return pct;
-    }
-
     getCueByVerse(verse) {
         var verseRegex=new RegExp(`\\b${verse}\\s*$`);
         return this.webvtt.data.find((c)=>{return verseRegex.test(c.content)});
