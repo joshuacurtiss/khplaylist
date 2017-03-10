@@ -21,8 +21,8 @@ class ScriptureVideo {
     get scripture() {return this._scripture}
     set scripture(scripture) {
         this._scripture=scripture;
+        var list=[];
         if( scripture.valid() ) {
-            var list=[];
             var cue;
             for( var v of scripture.verses ) {
                 cue=this.getCueByVerse(v);
@@ -36,8 +36,8 @@ class ScriptureVideo {
                     }
                 }
             }
-            this.list=list;
         }
+        this.list=list;
     }
 
     calcPlayLength() {
