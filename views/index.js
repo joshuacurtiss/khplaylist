@@ -308,14 +308,11 @@ function parsePlaylistItem(fld) {
     var tagText="";
     var tagHint="";
     var $li=$(fld).parent();
-    var livideos=$li.prop("videos");
-    if( txt.length ) {
+    if( txt.length && txt!=$li.prop("data-videos-text") ) {
         console.log(`Parsing field with "${txt}"...`)
-        // TODO: Check if text is same as previous parsing to avoid unnecessary 
-        //       reparsing. This is more efficient and negates recreating objects.
         var scriptures=su.parseScriptures(txt);
         var parseCount=scriptures.length;
-        livideos=new Array(scriptures.length);
+        var livideos=new Array(scriptures.length);
         if( scriptures.length ) {
             $li.addClass("parsing");
             for( var i=0 ; i<scriptures.length ; i++ ) {
@@ -364,6 +361,7 @@ function parsePlaylistItem(fld) {
                         // Set all data to the playlist item.
                         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                             .prop("videos",livideos)
+                            .prop("data-videos-text",dispNames.join(";"))
                             .find(".tag").text(tagText).attr("title",tagHint).end()
                             .find("input").val(dispNames.join("; ")).end();
                     }
@@ -374,6 +372,7 @@ function parsePlaylistItem(fld) {
             className="parseErr";
             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                 .prop("videos",[])
+                .prop("data-videos-text",txt)
                 .find(".tag").text(tagText);
         }
     }
