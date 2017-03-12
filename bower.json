@@ -16,7 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "webvtt": "https://github.com/joshuacurtiss/webvtt.git#821c680",
+    "webvtt": "https://github.com/joshuacurtiss/webvtt.git#e6701d900854b4b7e45767f22173ee79903a736d",
     "scripture": "https://github.com/joshuacurtiss/scripture.git#e2c9bc6",
     "theoreference": "https://github.com/joshuacurtiss/theoreference.git#9d2619e92ede19bb6acaf86ebf27f9cdc4e2e036",
     "font-awesome": "^4.7.0",

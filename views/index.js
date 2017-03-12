@@ -7,6 +7,7 @@ const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
 const WebVttWrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+const Scripture=require("../bower_components/scripture/Scripture");
 const ScriptureUtil=require("../bower_components/scripture/ScriptureUtil");
 const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
@@ -152,7 +153,9 @@ function checkVideo(){
         var endTime=parseFloat((v.list.length>curCueIndex)?v.list[curCueIndex].end:0);
         $("#playlist .selected .progress, .fullscreenMode.progress")
             .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,video.currentTime)}%`);
-        if( video.currentTime>=endTime ) {
+        // Take action if video has passed the designated end time.
+        // Check only to 2 decimals because some software calculates video duration accurate to 2 decimals only.
+        if( video.currentTime.toFixed(2)>=endTime ) {
             if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
                 console.log("Moving to cue #"+curCueIndex+".");
@@ -317,16 +320,48 @@ function parsePlaylistItem(fld) {
             $li.addClass("parsing");
             for( var i=0 ; i<scriptures.length ; i++ ) {
                 svu.createVideo(scriptures[i],(err,item)=>{
-                    livideos[scriptures.indexOf(item.scripture)]=item;
+                    // If an error occurs for any scripture parse, mark the playlist row in error.
                     if(err) {
                         console.log(err);
                         tagText=err.tag;
                         tagHint=err.message;
                         className="mediaErr";
                     }
+                    // If `item` is an array, its an array of single verse videos for the scripture. This requires more work.
+                    // Otherwise, just put the new item in the livideos array.
+                    if( Array.isArray(item) ) {
+                        // Create a scripture object based on the array
+                        let itemArrayScripture=new Scripture(item[0].scripture.book,item[0].scripture.chapter);
+                        for( let sv of item ) itemArrayScripture.verses.push(sv.scripture.verses[0]);
+                        // Find the composite scripture's position in the array of scriptures for this row. Put the array in that position.
+                        let lipos=scriptures.findIndex((scr)=>{return scr.toString()==itemArrayScripture.toString()});
+                        if( lipos>=0 ) livideos[lipos]=item;
+                    } else {
+                        livideos[scriptures.indexOf(item.scripture)]=item;
+                    }
+                    // Once all videos have been parsed/created, finally do UI handling.
                     if( --parseCount<=0 ) {
+                        // Find any "composite scripture" arrays and flatten them out with the rest of the array 
+                        for( let lipos=0 ; lipos<livideos.length ; lipos++ ) {
+                            if( Array.isArray(livideos[lipos]) )
+                                livideos.splice(lipos,1,...livideos[lipos]);
+                        }
+                        // Get all scriptures from the array, rebuilding composite scripture videos into one single scripture object.
+                        let liscriptures=[];
+                        for( let livideo of livideos ) {
+                            let prevScripture=liscriptures.length>0?liscriptures[liscriptures.length-1]:undefined;
+                            if( prevScripture && 
+                                    prevScripture.book.num==livideo.scripture.book.num && 
+                                    prevScripture.chapter==livideo.scripture.chapter ) {
+                                prevScripture.verses.push(...livideo.scripture.verses)
+                            } else {
+                                liscriptures.push(livideo.scripture);
+                            }
+                        }
+                        // Finally, create an array of friendly scripture names
                         let dispNames=[];
-                        livideos.forEach((x)=>{dispNames.push(x.displayName)});
+                        liscriptures.forEach((liscripture)=>{dispNames.push(liscripture.toString())});
+                        // Set all data to the playlist item.
                         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                             .prop("videos",livideos)
                             .find(".tag").text(tagText).attr("title",tagHint).end()

@@ -1,3 +1,4 @@
+let Scripture=require("../bower_components/scripture/Scripture");
 let ScriptureVideo=require("./ScriptureVideo");
 let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
 let fs=require("fs-extra");
@@ -56,9 +57,38 @@ class ScriptureVideoUtil {
             var videoFile=this.videos.find((value)=>{return videoRegex.test(value)});
             var webvttFile=this.webvtts.find((value)=>{return webvttRegex.test(value)});
             if( !videoFile ) {
-                // If not video file, just return error indicating no video file.
-                console.log(`No video file for ${scripture.book.name} chapter ${scripture.chapter}.`);
-                cb({code:"novideo",tag:"Not Found",message:"Video file could not be found!"},new ScriptureVideo(scripture));
+                // If no video file for the chapter, try looking for the verses
+                let versevideos=[];
+                for( var v of scripture.verses ) {
+                    videoRegex=new RegExp(
+                        escapeStringRegexp(path.sep)+"\\w+_\\w+_"+
+                        "0{0,1}"+booknum+"-"+
+                        "0{0,2}"+chapter+"-"+
+                        "0{0,2}"+v+"_"+
+                        "r\\d{3}p\\.\\w{3}$","i");
+                    videoFile=this.videos.find((value)=>{return videoRegex.test(value)});
+                    if( videoFile ) {
+                        console.log(`For verse ${v}, I found "${videoFile}"`);
+                        // TODO: Using getInfoSync() significantly reduces performance. Can we use promises/fibers to keep it asynchronous?
+                        let info=this.videoApp.getInfoSync(videoFile);
+                        let webvtt=[{
+                            id: 0,
+                            start: info.start,
+                            end: info.duration,
+                            name: `${scripture.book.name} ${scripture.chapter}:${v}`
+                        }];
+                        let scrip=new Scripture(scripture.book,scripture.chapter,v);
+                        console.log(`Verse ${v} should be at position ${scripture.verses.indexOf(v)}.`);
+                        versevideos.push(new ScriptureVideo(scrip,videoFile,webvtt));
+                    }
+                }
+                // Send videos, or if still no video file found, return error indicating no video file.
+                if( versevideos.length==scripture.verses.length ) {
+                    cb(null,versevideos);
+                } else {
+                    console.log(`No video file for ${scripture.toString()}.`);
+                    cb({code:"novideo",tag:"Not Found",message:"Video file could not be found!"},new ScriptureVideo(scripture));
+                }
             } else if( !webvttFile ) {
                 // If no webvtt file, then create one and send stuff.
                 console.log(`No webvtt file for ${videoFile}. Make one now.`);
