@@ -322,7 +322,7 @@ function parsePlaylistItem(fld) {
         var objs=scriptures.concat(references);
         // Make an array to help with keeping track of the order, which will also
         // double as the "Display Name" array for UI later:
-        objs.sort((a,b)=>b.index-a.index);
+        objs.sort((a,b)=>a.index-b.index);
         var order=objs.map(item=>item.obj.toString());
         // Gather together scriptures and references objects
         var items=[];
@@ -364,7 +364,7 @@ function parsePlaylistItem(fld) {
                         // Set all data to the playlist item.
                         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                             .prop("videos",videos)
-                            .prop("data-videos-text",order.join(";"))
+                            .prop("data-videos-text",order.join("; "))
                             .find(".tag").text(tagText).attr("title",tagHint).end()
                             .find("input").val(order.join("; ")).end();
                     }
