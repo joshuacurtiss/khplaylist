@@ -18,7 +18,7 @@
   "dependencies": {
     "webvtt": "https://github.com/joshuacurtiss/webvtt.git#e6701d900854b4b7e45767f22173ee79903a736d",
     "scripture": "https://github.com/joshuacurtiss/scripture.git#716b39e3f8975fc967edcc1a10b359299963545a",
-    "theoreference": "https://github.com/joshuacurtiss/theoreference.git#97af60a035e0c56e326fe67365da342065835581",
+    "theoreference": "https://github.com/joshuacurtiss/theoreference.git#26b402f26007306e1d805e1a0bcd8648cf57cecd",
     "font-awesome": "^4.7.0",
     "jquery": "^3.1.1",
     "jquery-ui": "^1.12.1"

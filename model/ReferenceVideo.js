@@ -27,8 +27,8 @@ class ReferenceVideo {
         if( reference.valid() ) {
             var list=[];
             var cue;
-            for( var cuename of reference.cues ) {
-                cue=this.getCueByName(cuename);
+            for( var cueid of reference.cues ) {
+                cue=this.getCueById(cueid);
                 if( list.length && list[list.length-1].end==cue.start ) {
                     var last=list[list.length-1];
                     last.end=cue.end;
@@ -48,8 +48,13 @@ class ReferenceVideo {
     }
 
     getCueByName(cuename) {
-        return cue=this.webvtt.data.find(item=>item.content.toLowerCase()==cuename.toLowerCase());
+        return this.webvtt.data.find(item=>item.content.toLowerCase()==cuename.toLowerCase());
     }
+    
+    getCueById(cueid) {
+        return this.webvtt.data[cueid];
+    }
+    
 }
 
 module.exports=ReferenceVideo;

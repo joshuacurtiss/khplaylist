@@ -27,8 +27,8 @@ class ReferenceVideoUtil {
         for( var p of pathwalk ) {
             f=p.split(path.sep).pop();
             ext=f.split(".").pop().toLowerCase();
-            if( ReferenceUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(path);
-            else if( ReferenceUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(path);
+            if( ReferenceVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
+            else if( ReferenceVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(p);
         }
         this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
         this.webvtts=webvtts;
