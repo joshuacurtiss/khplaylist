@@ -10,6 +10,9 @@ const WebVttWrapperController=require("../bower_components/webvtt/wrappers/Wrapp
 const Scripture=require("../bower_components/scripture/Scripture");
 const ScriptureUtil=require("../bower_components/scripture/ScriptureUtil");
 const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
+const Reference=require("../bower_components/theoreference/Reference");
+const ReferenceUtil=require("../bower_components/theoreference/ReferenceUtil");
+const ReferenceVideoUtil=require("../model/ReferenceVideoUtil");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 require("../bower_components/jquery-ui/jquery-ui");
 
@@ -19,6 +22,8 @@ var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var svu=new ScriptureVideoUtil(videopath);
 var su=new ScriptureUtil();
+var rvu=new ReferenceVideoUtil(videopath);
+var ru=new ReferenceUtil();
 var videoAppController=new WebVttWrapperController()
 
 $(document).ready(()=>{
@@ -116,8 +121,8 @@ function saveState() {
 function mountPlaylistItem(li,index=0,start=false) {
     var $li=$(li);
     var key=$li.find("input").val();
-    var livideos=$li.prop("videos");
-    var item=livideos[index];
+    var videos=$li.prop("videos");
+    var item=videos[index];
     if( item ) {
         pauseVideo();
         console.log(`Mounting #${index} "${item.displayName}" (with ${item.list.length} cues).`);
@@ -309,61 +314,59 @@ function parsePlaylistItem(fld) {
     var tagHint="";
     var $li=$(fld).parent();
     if( txt.length && txt!=$li.prop("data-videos-text") ) {
+        // Do initial parsing to create scriptures and references:
         console.log(`Parsing field with "${txt}"...`)
-        var scriptures=su.parseScriptures(txt);
-        var parseCount=scriptures.length;
-        var livideos=new Array(scriptures.length);
-        if( scriptures.length ) {
+        var scriptures=su.parseScripturesWithIndex(txt);
+        var references=ru.parseReferencesWithIndex(txt);
+        // Combine them so we can work on them together
+        var objs=scriptures.concat(references);
+        // Make an array to help with keeping track of the order, which will also
+        // double as the "Display Name" array for UI later:
+        objs.sort((a,b)=>b.index-a.index);
+        var order=objs.map(item=>item.obj.toString());
+        // Gather together scriptures and references objects
+        var items=[];
+        objs.forEach(item=>items.push(item.obj));
+        // Loop thru the items and create the video objects
+        var videos=new Array(items.length);
+        var handler, handlers={"Scripture":svu,"Reference":rvu};
+        if( items.length ) {
             $li.addClass("parsing");
-            for( var i=0 ; i<scriptures.length ; i++ ) {
-                svu.createVideo(scriptures[i],(err,item)=>{
-                    // If an error occurs for any scripture parse, mark the playlist row in error.
+            var parseCount=items.length;
+            for( var i=0 ; i<items.length ; i++ ) {
+                handler=handlers[items[i].constructor.name];
+                handler.createVideo(items[i],(err,item)=>{
+                    // If an error occurs for any parse, mark the playlist row in error.
                     if(err) {
                         console.log(err);
                         tagText=err.tag;
                         tagHint=err.message;
                         className="mediaErr";
                     }
-                    // If `item` is an array, its an array of single verse videos for the scripture. This requires more work.
-                    // Otherwise, just put the new item in the livideos array.
+                    // If `item` is an array, its an array of single verse videos for a scripture. This requires more work.
+                    // Otherwise, just put the new item in the videos array.
                     if( Array.isArray(item) ) {
                         // Create a scripture object based on the array
                         let itemArrayScripture=new Scripture(item[0].scripture.book,item[0].scripture.chapter);
                         for( let sv of item ) itemArrayScripture.verses.push(sv.scripture.verses[0]);
                         // Find the composite scripture's position in the array of scriptures for this row. Put the array in that position.
-                        let lipos=scriptures.findIndex((scr)=>{return scr.toString()==itemArrayScripture.toString()});
-                        if( lipos>=0 ) livideos[lipos]=item;
+                        videos[order.indexOf(itemArrayScripture.toString())]=item;
                     } else {
-                        livideos[scriptures.indexOf(item.scripture)]=item;
+                        videos[order.indexOf(item.displayName)]=item;
                     }
                     // Once all videos have been parsed/created, finally do UI handling.
                     if( --parseCount<=0 ) {
                         // Find any "composite scripture" arrays and flatten them out with the rest of the array 
-                        for( let lipos=0 ; lipos<livideos.length ; lipos++ ) {
-                            if( Array.isArray(livideos[lipos]) )
-                                livideos.splice(lipos,1,...livideos[lipos]);
+                        for( let pos=0 ; pos<videos.length ; pos++ ) {
+                            if( Array.isArray(videos[pos]) )
+                                videos.splice(pos,1,...videos[pos]);
                         }
-                        // Get all scriptures from the array, rebuilding composite scripture videos into one single scripture object.
-                        let liscriptures=[];
-                        for( let livideo of livideos ) {
-                            let prevScripture=liscriptures.length>0?liscriptures[liscriptures.length-1]:undefined;
-                            if( prevScripture && 
-                                    prevScripture.book.num==livideo.scripture.book.num && 
-                                    prevScripture.chapter==livideo.scripture.chapter ) {
-                                prevScripture.verses.push(...livideo.scripture.verses)
-                            } else {
-                                liscriptures.push(livideo.scripture);
-                            }
-                        }
-                        // Finally, create an array of friendly scripture names
-                        let dispNames=[];
-                        liscriptures.forEach((liscripture)=>{dispNames.push(liscripture.toString())});
                         // Set all data to the playlist item.
                         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
-                            .prop("videos",livideos)
-                            .prop("data-videos-text",dispNames.join(";"))
+                            .prop("videos",videos)
+                            .prop("data-videos-text",order.join(";"))
                             .find(".tag").text(tagText).attr("title",tagHint).end()
-                            .find("input").val(dispNames.join("; ")).end();
+                            .find("input").val(order.join("; ")).end();
                     }
                 });
             }
