@@ -18,6 +18,8 @@ require("../bower_components/jquery-ui/jquery-ui");
 
 // Globals
 const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
+const FF_SECS=15;
+const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var svu=new ScriptureVideoUtil(videopath);
@@ -43,6 +45,8 @@ $(document).ready(()=>{
     $(".vidbackward").click(prevVideo);
     $(".vidforward").click(nextVideo);
     $(".vidplaypause").click(toggleVideo);
+    $(".vidrw").click(rewindVideo);
+    $(".vidff").click(fastforwardVideo);
 
     // Mouse movement handler (for fullscreen mode)
     var uiTimeout, uiStatus=false;
@@ -142,6 +146,7 @@ function mountPlaylistItem(li,index=0,start=false) {
         video.setAttribute("data-cue-index",-1);
         $("#text").text(key).css("line-height",$(video).css("height")).show();
     }
+    checkControls();
 }
 
 function updateVideoUI(){
@@ -172,6 +177,7 @@ function checkVideo(){
                 pauseVideo();
                 video.setAttribute("data-video-index","-1");
                 video.setAttribute("data-cue-index","-1");
+                checkControls();
             }
         }
     }
@@ -210,9 +216,19 @@ function toggleFullscreen(){
     $("#text").css("line-height",$(video).css("height"));
 }
 
+function checkControls() {
+    var curVideoIndex=Number(video.getAttribute("data-video-index"));
+    var curCueIndex=Number(video.getAttribute("data-cue-index"));
+    var $controls=$("#videoControls .vidff, #videoControls .vidrw, #videoControls .vidplaypause");
+    if( curVideoIndex>=0 && curCueIndex>=0 ) $controls.removeClass("disabled");
+    else $controls.addClass("disabled");
+}
+
 function toggleVideo(){
-    if(video.paused && video.readyState>2) playVideo();
-    else pauseVideo();
+    if( ! $("#videoControls .vidplaypause").hasClass('disabled') ) {
+        if(video.paused && video.readyState>2) playVideo();
+        else pauseVideo();
+    }
 }
 function playVideo(){
     $("#videoControls .vidplaypause").removeClass("fa-play").addClass("fa-pause");
@@ -238,6 +254,19 @@ function nextVideo(){
         selectPlaylistItem($("#playlist li:last"));
     } else if( ! $li.is(":last-child") ) {
         selectPlaylistItem($li.next());
+    }
+}
+function rewindVideo(){
+    if( ! $("#videoControls .vidrw").hasClass('disabled') ) {
+        // TODO: Make this intelligent to know to change cue/video index when rewinding 
+        video.currentTime=(video.currentTime>=RW_SECS)?video.currentTime-RW_SECS:0;
+    }
+}
+function fastforwardVideo(){
+    if( ! $("#videoControls .vidff").hasClass('disabled') ) {
+        // TODO: Make this intelligent to know to change cue/video index when fast-forwarding 
+        video.currentTime=(video.currentTime<video.duration-FF_SECS)?video.currentTime+FF_SECS:video.duration;
+        checkVideo();
     }
 }
 

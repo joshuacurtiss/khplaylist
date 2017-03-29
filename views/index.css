@@ -83,11 +83,13 @@ body.playlistMode video {
 body.playlistMode #videoControls {
     margin-top: 2vh;
     text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
 }
 #videoControls i {
     font-size: 3vh;
     background-color: #333;
-    margin: 0 2vw;
+    margin: 0 1vw;
     padding: 1.3vh;
     border-radius: 50%;
     opacity: 0.8;
@@ -96,6 +98,12 @@ body.playlistMode #videoControls {
 #videoControls .fa-play {
     padding: 1.3vh 1vh 1.3vh 1.6vh;
 }
+
+/* Reward and Fast-Forward are hidden until they're fine-tuned a bit more */
+.vidff, .vidrw {display:none;}
+
+#videoControls i.disabled {background-color: #222;}
+#videoControls i.disabled:hover {background-color: #222;}
 #videoControls i:hover {
     background-color: #444;
 }
