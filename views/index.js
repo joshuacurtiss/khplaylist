@@ -7,6 +7,8 @@ const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
 const WebVttWrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+const ExternalMedia=require("../model/ExternalMedia");
+const ExternalMediaUtil=require("../model/ExternalMediaUtil");
 const Scripture=require("../bower_components/scripture/Scripture");
 const ScriptureUtil=require("../bower_components/scripture/ScriptureUtil");
 const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
@@ -22,6 +24,8 @@ const FF_SECS=15;
 const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
+var imageTimeout=null;
+var emu=new ExternalMediaUtil();
 var svu=new ScriptureVideoUtil(videopath);
 var su=new ScriptureUtil();
 var rvu=new ReferenceVideoUtil(videopath);
@@ -127,6 +131,8 @@ function mountPlaylistItem(li,index=0,start=false) {
     var key=$li.find("input").val();
     var videos=$li.prop("videos");
     var item=videos[index];
+    if(imageTimeout) clearTimeout(imageTimeout);
+    video.style.backgroundImage="none";
     if( item ) {
         pauseVideo();
         console.log(`Mounting #${index} "${item.displayName}" (with ${item.list.length} cues).`);
@@ -134,9 +140,19 @@ function mountPlaylistItem(li,index=0,start=false) {
         video.setAttribute("data-video-index",index);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
-            video.src=item.path;
+            video.src=encodeURI(item.path);
             video.currentTime=parseFloat(item.list[0].start);
             if(start) playVideo();
+        } else if( item instanceof ExternalMedia && item.isImage() ) {
+            video.src="";
+            video.currentTime=0;
+            video.setAttribute("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
+            video.style.backgroundImage=`url(${encodeURI(item.path)})`;
+            if( videos.length-1>index ) {
+                // If there are more items for this playlist item, set timer.
+                console.log(`Counting down ${ExternalMedia.IMAGE_DURATION} secs.`)
+                imageTimeout=setTimeout(()=>{mountPlaylistItem($li,index+1,true)}, ExternalMedia.IMAGE_DURATION*1000);
+            }
         }
     } else {
         console.log(`Nothing found for "${key}". Blanking video.`);
@@ -187,10 +203,16 @@ function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
     var sum=0, cueMax;
     // Calculate sum of all past videos/cues played so far
     for( var vi=0 ; vi<=videoIndex ; vi++ ) {
-        cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
-        for( ci=0 ; ci<cueMax ; ci++ )
-            if( videos[vi].list.length>ci )
-                sum+=videos[vi].list[ci].end-videos[vi].list[ci].start;
+        if( videos[vi] instanceof ExternalMedia && videos[vi].isImage() ) {
+            // If it's an image, just give the image duration constant
+            sum+=ExternalMedia.IMAGE_DURATION;
+        } else {
+            // Otherwise, add all the cues lengths for a given video's list
+            cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
+            for( ci=0 ; ci<cueMax ; ci++ )
+                if( videos[vi].list.length>ci )
+                    sum+=videos[vi].list[ci].end-videos[vi].list[ci].start;
+        }
     }
     // Now add time for the current video
     if( videos[videoIndex].list.length>cueIndex )
@@ -347,8 +369,9 @@ function parsePlaylistItem(fld) {
         console.log(`Parsing field with "${txt}"...`)
         var scriptures=su.parseScripturesWithIndex(txt);
         var references=ru.parseReferencesWithIndex(txt);
+        var media=emu.parseExternalMediaWithIndex(txt);
         // Combine them so we can work on them together
-        var objs=scriptures.concat(references);
+        var objs=scriptures.concat(references).concat(media);
         // Make an array to help with keeping track of the order, which will also
         // double as the "Display Name" array for UI later:
         objs.sort((a,b)=>a.index-b.index);
@@ -358,7 +381,7 @@ function parsePlaylistItem(fld) {
         objs.forEach(item=>items.push(item.obj));
         // Loop thru the items and create the video objects
         var videos=new Array(items.length);
-        var handler, handlers={"Scripture":svu,"Reference":rvu};
+        var handler, handlers={"Scripture":svu,"Reference":rvu,"ExternalMedia":emu};
         if( items.length ) {
             $li.addClass("parsing");
             var parseCount=items.length;
