@@ -140,14 +140,14 @@ function mountPlaylistItem(li,index=0,start=false) {
         video.setAttribute("data-video-index",index);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
         if( item.list.length ) {
-            video.src=encodeURI(item.path);
+            video.src=encodeURI(item.path).replace("#","%23");
             video.currentTime=parseFloat(item.list[0].start);
             if(start) playVideo();
         } else if( item instanceof ExternalMedia && item.isImage() ) {
             video.src="";
             video.currentTime=0;
             video.setAttribute("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
-            video.style.backgroundImage=`url(${encodeURI(item.path)})`;
+            video.style.backgroundImage=`url(${encodeURI(item.path).replace("#","%23")})`;
             if( videos.length-1>index ) {
                 // If there are more items for this playlist item, set timer.
                 console.log(`Counting down ${ExternalMedia.IMAGE_DURATION} secs.`)
