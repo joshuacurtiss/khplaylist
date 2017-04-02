@@ -39,8 +39,8 @@ $(document).ready(()=>{
     $chname=$(".chname");
 
     // Wire up listeners
-    $(window).keydown(windowKeyDownHandler);
-    $(window).keyup(windowKeyUpHandler);
+    $(window).keydown(windowKeyHandler);
+    $(window).keyup(windowKeyHandler);
     video.addEventListener("timeupdate", checkVideo, false);
     video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
@@ -433,30 +433,29 @@ function parsePlaylistItem(fld) {
     }
 }
 
-function windowKeyDownHandler(e) {
+function windowKeyHandler(e) {
     var key=e.key.toLowerCase();
+    var cmds={
+        "keydown": {
+            " ": toggleVideo,
+            "q": quit,
+            "x": quit,
+            "f": toggleFullscreen,
+            "escape": toggleFullscreen
+        },
+        "keyup": {
+            "arrowup": prevVideo,
+            "arrowdown": nextVideo,
+            "arrowleft": rewindVideo,
+            "arrowright": fastforwardVideo
+        }
+    };
     if( $(e.target).is("input") ) {
         return true;
-    } else if( key==" " ) {
-        toggleVideo();
-    } else if( key=="q" || key=="x" ) {
-        quit();
-    } else if( key=="f" || (key=="escape" && $("body").hasClass("fullscreenMode")) ) {
+    } else if( cmds[e.type].hasOwnProperty(key) ) {
         e.preventDefault();
-        toggleFullscreen();
-    }
-}
-
-function windowKeyUpHandler(e) {
-    var key=e.key.toLowerCase();
-    if( $(e.target).is("input") ) {
-        return true;
-    } else if( key=="arrowup" || key=="arrowleft" ) {
-        e.preventDefault();
-        prevVideo();
-    } else if( key=="arrowdown" || key=="arrowright" ) {
-        e.preventDefault();
-        nextVideo();
+        if( key=="escape" && !$("body").hasClass("fullscreenMode") ) return;
+        cmds[e.type][key]();
     }
 }
 
