@@ -43,10 +43,13 @@ class ReferenceVideoUtil {
         // RegEx: /BOOKSYMBOL_something_CHAPTER_r999p.ext
         if( reference.valid() ) {
             var chapter="0*"+reference.chapter.toString();
+            var date=reference.publication.date;
+            var datemask="YYYYMM"+(reference.publication.isOldWatchtower()?"DD":"");
             var baseFileRegex=
                 escapeStringRegexp(path.sep)+
                 reference.publication.symbol+"_"+
                 "\\w+_"+
+                (date?`${date.format(datemask)}_`:``)+
                 chapter+"_"+
                 "r\\d{3}p\\.\\w{3}";
             var videoRegex=new RegExp(baseFileRegex+"$","i");
