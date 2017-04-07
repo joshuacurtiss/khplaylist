@@ -40,6 +40,9 @@ class ScriptureVideo {
         this.list=list;
     }
 
+    isImage() {return false}
+    isVideo() {return true}
+
     calcPlayLength() {
         var sum=0;
         for( var cue of this.list ) sum+=cue.end-cue.start;
