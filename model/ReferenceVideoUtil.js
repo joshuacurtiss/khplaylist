@@ -66,15 +66,27 @@ class ReferenceVideoUtil {
                 if( this.videoApp ) {
                     this.videoApp.createWebVTT(videoFile,(err,webvtt)=>{
                         if( err ) {
+                            // Report the WebVTT creation error
                             console.error(err.toString());
                             cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ReferenceVideo(reference,videoFile));
-                        } else {
+                        } else if( webvtt.data.length ) {
+                            // Generated WebVTT is good. Save it and use it.
                             var webvttpath=videoFile+".webvtt";
                             this.webvtts.push(webvttpath);
                             fs.writeFileSync(webvttpath, webvtt.toString());
                             console.log(`Created ${webvttpath}!`);
                             cb(null,new ReferenceVideo(reference,videoFile,webvtt));
-                        } 
+                        } else {
+                            // WebVTT was empty. Don't save it, make a fake webvtt for one-time use.
+                            let info=this.videoApp.getInfoSync(videoFile);
+                            webvtt=[{
+                                id: 0,
+                                start: info.start,
+                                end: info.duration,
+                                name: `${reference.publication.name} ${reference.chapter}`
+                            }];
+                            cb(null,new ReferenceVideo(reference,videoFile,webvtt));
+                        }
                     });
                 } else {
                     cb({code:"indexerr",tag:"Index Error",message:"No application available to index video!"},new ReferenceVideo(reference,videoFile));
