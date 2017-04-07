@@ -349,6 +349,9 @@ function playlistItemKeyUp(e){
     } else if( e.key=="ArrowDown" || e.key=="Enter" ) {
         nextVideo();
         return false;
+    } else if( e.key==" " ) {
+        // Just catch this to prevent normal keyup actions below from happening.
+        return false;
     } else if( val.length>0 && $li.is(":last-child") ) {
         addPlaylistRow($li);
     } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
@@ -389,22 +392,27 @@ function parsePlaylistItem(fld) {
             for( var i=0 ; i<items.length ; i++ ) {
                 handler=handlers[items[i].constructor.name];
                 handler.createVideo(items[i],(err,item)=>{
-                    // If an error occurs for any parse, mark the playlist row in error.
                     if(err) {
+                        // If an error occurs for any parse, mark the playlist row in error.
                         console.log(err);
                         tagText=err.tag;
                         tagHint=err.message;
                         className="mediaErr";
+                    } else if( ! Array.isArray(item) && item.isVideo() && item.list.length==0 )  {
+                        // If item is delivered but its list of cues is empty, consider it a parse error
+                        tagHint="Could not find part of the video.";
+                        tagText="Cue not found";
+                        className="mediaErr";
                     }
                     // If `item` is an array, its an array of single verse videos for a scripture. This requires more work.
-                    // Otherwise, just put the new item in the videos array.
+                    // Otherwise, just put the new item in the videos array, given that it has a cue list.
                     if( Array.isArray(item) ) {
                         // Create a scripture object based on the array
                         let itemArrayScripture=new Scripture(item[0].scripture.book,item[0].scripture.chapter);
                         for( let sv of item ) itemArrayScripture.verses.push(sv.scripture.verses[0]);
                         // Find the composite scripture's position in the array of scriptures for this row. Put the array in that position.
                         videos[order.indexOf(itemArrayScripture.toString())]=item;
-                    } else {
+                    } else if( item.list.length || item.isImage() ) {
                         videos[order.indexOf(item.displayName)]=item;
                     }
                     // Once all videos have been parsed/created, finally do UI handling.
