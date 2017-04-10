@@ -167,6 +167,7 @@ body.playlistMode #videoControls {
     padding: 4px 0;
     margin-left: -5px;
     width: 33vw;
+    text-overflow: ellipsis;
     position: relative;
 }
 
