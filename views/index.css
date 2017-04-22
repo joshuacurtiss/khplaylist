@@ -17,6 +17,10 @@ video {
     text-align: center;
 }
 
+.hidden {
+    display:none;
+}
+
 /***** FULLSCREEN *****/
 
 body.fullscreenMode .playlistMode {display:none;}
@@ -200,16 +204,23 @@ body.playlistMode #videoControls {
 #playlistContainer li.mediaErr {
     background-color: #472300;
 }
-
-#playlistContainer i.loader {
-    opacity: 0;
+#playlistContainer li i {
     float:right;
-    margin: 10px 10px 0 0;
+    margin: 10px 8px 0 0;
+}
+#playlistContainer i {
+    opacity: 0;
 }
 #playlistContainer li.parsing i.loader {
     opacity: 0.7;
 }
-
+#playlistContainer li.selected i.menu {
+    opacity: 0.3;
+}
+#playlistContainer li.selected i.menu:hover {
+    opacity: 0.9;
+    cursor: pointer;
+}
 #playlistContainer .tag {
     position: absolute;
     line-height: 14px;
@@ -248,4 +259,21 @@ body.playlistMode #videoControls {
 
 .togglebutton:hover {
     background-color: #444;
+}
+
+/* Playlist Dropdown Menu */
+#dropdown li {
+    color: #ccc;
+    font-size: 12px;
+}
+#dropdown a:hover {
+    background: #555;
+}
+#dropdown ul {
+    background: #333;
+    border: solid 1px #555;
+}
+.jq-dropdown.jq-dropdown-tip:before,
+.jq-dropdown.jq-dropdown-tip:after {
+    border-bottom-color: #555;
 }

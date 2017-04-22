@@ -21,6 +21,7 @@
     "theoreference": "joshuacurtiss/theoreference#451ef63",
     "font-awesome": "^4.7.0",
     "jquery": "^3.1.1",
-    "jquery-ui": "^1.12.1"
+    "jquery-ui": "^1.12.1",
+    "jquery-dropdown": "^2.0.3"
   }
 }

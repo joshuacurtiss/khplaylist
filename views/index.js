@@ -17,6 +17,7 @@ const ReferenceUtil=require("../bower_components/theoreference/ReferenceUtil");
 const ReferenceVideoUtil=require("../model/ReferenceVideoUtil");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 require("../bower_components/jquery-ui/jquery-ui");
+require("../bower_components/jquery-dropdown/jquery.dropdown.min");
 
 // Globals
 const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
@@ -51,6 +52,8 @@ $(document).ready(()=>{
     $(".vidplaypause").click(toggleVideo);
     $(".vidrw").click(rewindVideo);
     $(".vidff").click(fastforwardVideo);
+    $("#mnuBrowseExternalMedia").click(browseExternalMedia);
+    $("#browseExternalMedia").change(handleBrowseExternalMedia);
 
     // Mouse movement handler (for fullscreen mode)
     var uiTimeout, uiStatus=false;
@@ -76,7 +79,7 @@ $(document).ready(()=>{
         opacity: 0.7,
         revert: true
     });
-    
+
     // Select first entry
     selectFirstItem();
 
@@ -300,6 +303,7 @@ function addPlaylistRow(item) {
             <span class="handle">&#9776;</span>
             <input type="text" placeholder="Enter scripture or publication reference" />
             <span class="tag"></span>
+            <i data-jq-dropdown="#dropdown" data-horizontal-offset="5" class="fa fa-cog fa-fw menu"></i>
             <i class="fa fa-refresh fa-spin fa-fw loader"></i>
         </li>
     `)
@@ -443,7 +447,7 @@ function parsePlaylistItem(fld) {
 }
 
 function windowKeyHandler(e) {
-    var key=e.key.toLowerCase();
+    var key=e.key?e.key.toLowerCase():"";
     var cmds={
         "keydown": {
             " ": toggleVideo,
@@ -465,6 +469,25 @@ function windowKeyHandler(e) {
         e.preventDefault();
         if( key=="escape" && !$("body").hasClass("fullscreenMode") ) return;
         cmds[e.type][key]();
+    }
+}
+
+function browseExternalMedia() {
+    // Just trigger a click of the input[type=file] form element
+    $("#browseExternalMedia").trigger("click");
+}
+function handleBrowseExternalMedia(evt) {
+    // Only proceed if a file was passed in
+    if( this.files.length ) {
+        // Append this to the existing value of selected input
+        var $input=$("#playlist li.selected input");
+        var text=$input.val().trim();
+        if( text.length ) text+="; ";
+        text+=this.files[0].path;
+        // Focus and trigger keyup event so the form element behaves normally
+        $input.val(text).focus().trigger("keyup");
+        // Clear the file field's value so the onchange event fires every time
+        this.value="";
     }
 }
 

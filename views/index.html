@@ -4,10 +4,14 @@
 <head>
 	<title>Play Video</title>
     <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css" />
-	<link href="index.css" type="text/css" rel="stylesheet"/>
+	<link rel="stylesheet" href="../bower_components/jquery-dropdown/jquery.dropdown.min.css" />
+    <link href="index.css" type="text/css" rel="stylesheet"/>
     <script src="index.js" language="javascript"></script>
 </head>
 <body class="playlistMode">
+    <form class="hidden">
+        <input id="browseExternalMedia" type="file" accept=".mov,.mp4,.m4v,.webm,.jpg,.png,.gif,.bmp" />
+    </form>
     <div id="videoContainer">
         <video id="video" preload="metadata"></video>
         <div id="text"></div>
@@ -40,6 +44,11 @@
     <div class="playlistMode cornerbuttons ui">
         <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
         <i class="fa fa-fw fa-expand togglebutton fullscreenToggle"></i>
+    </div>
+    <div id="dropdown" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
+        <ul class="jq-dropdown-menu">
+            <li><a id="mnuBrowseExternalMedia" href="#">Browse external media…</a></li>
+        </ul>
     </div>
 </body>
 </html>
