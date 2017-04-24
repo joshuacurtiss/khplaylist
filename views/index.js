@@ -144,7 +144,7 @@ function mountPlaylistItem(li,index=0,start=false) {
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/")).replace("#","%23");
         if( item.list.length ) {
-            video.src=escapedPath;
+            if( video.src!="file://"+escapedPath ) video.src=escapedPath;
             video.currentTime=parseFloat(item.list[0].start);
             if(start) playVideo();
         } else if( item instanceof ExternalMedia && item.isImage() ) {
