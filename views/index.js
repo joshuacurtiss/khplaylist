@@ -323,6 +323,7 @@ function addPlaylistRow(item) {
         </li>
     `)
     .prop("videos",[])
+    .click(playlistItemFocus)
     .find("input")
         .blur(playlistItemBlur)
         .focus(playlistItemFocus)
@@ -332,9 +333,11 @@ function addPlaylistRow(item) {
     if( item ) $(newli).insertAfter(item);
     else $("#playlist ol").append(newli);
 }
-function playlistItemFocus(){
-    var $li=$(this).parent();
-    if( ! $li.hasClass("selected") ) selectPlaylistItem($(this).parent());
+function playlistItemFocus(e){
+    var $li;
+    if( $(this).is("li") ) $li=$(this);
+    else $li=$(this).closest("li");
+    if( ! $li.hasClass("selected") ) selectPlaylistItem($li);
 }
 function selectPlaylistItem(li) {
     $(li)
