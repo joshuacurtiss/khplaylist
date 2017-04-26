@@ -159,7 +159,7 @@ function mountPlaylistItem(li,index=0,start=false) {
                 .replace("(","%28")
                 .replace(")","%29");
         if( item.list.length ) {
-            if( video.src!="file://"+escapedPath ) video.src=escapedPath;
+            if( video.src!=`file://${os.type()=="Darwin"?"":"/"}${escapedPath}` ) video.src=escapedPath;
             video.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
             if(start) playVideo();
         } else if( item instanceof ExternalMedia && item.isImage() ) {
