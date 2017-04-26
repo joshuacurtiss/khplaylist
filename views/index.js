@@ -142,7 +142,10 @@ function mountPlaylistItem(li,index=0,start=false) {
         $("#text").hide();
         video.setAttribute("data-video-index",index);
         video.setAttribute("data-cue-index",item.list.length>=0?0:-1);
-		var escapedPath=encodeURI(item.path.replace(/\\/g,"/")).replace("#","%23");
+		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
+                .replace("#","%23")
+                .replace("(","%28")
+                .replace(")","%29");
         if( item.list.length ) {
             if( video.src!="file://"+escapedPath ) video.src=escapedPath;
             video.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
