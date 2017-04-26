@@ -145,7 +145,7 @@ function mountPlaylistItem(li,index=0,start=false) {
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/")).replace("#","%23");
         if( item.list.length ) {
             if( video.src!="file://"+escapedPath ) video.src=escapedPath;
-            video.currentTime=parseFloat(item.list[0].start);
+            video.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
             if(start) playVideo();
         } else if( item instanceof ExternalMedia && item.isImage() ) {
             video.src="";
@@ -189,7 +189,7 @@ function checkVideo(){
             if( curCueIndex<v.list.length-1 ) {
                 curCueIndex+=1;
                 console.log("Moving to cue #"+curCueIndex+".");
-                video.currentTime=parseFloat(v.list[curCueIndex].start);
+                video.currentTime=Math.ceil(parseFloat(v.list[curCueIndex].start)*100)/100;
                 video.setAttribute("data-cue-index",curCueIndex);
             } else if( curVideoIndex<videos.length-1 ) {
                 mountPlaylistItem($li,curVideoIndex+1,true);
