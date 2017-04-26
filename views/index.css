@@ -269,9 +269,18 @@ body.playlistMode #videoControls {
 #dropdown a:hover {
     background: #555;
 }
+#dropdown .disabled {
+    color: #888;
+}
+#dropdown .disabled a:hover {
+    background-color: #333;
+}
 #dropdown ul {
     background: #333;
     border: solid 1px #555;
+}
+.jq-dropdown .jq-dropdown-menu .jq-dropdown-divider {
+    border-top-color: #555;
 }
 .jq-dropdown.jq-dropdown-tip:before,
 .jq-dropdown.jq-dropdown-tip:after {

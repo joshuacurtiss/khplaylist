@@ -54,6 +54,18 @@ $(document).ready(()=>{
     $(".vidff").click(fastforwardVideo);
     $("#mnuBrowseExternalMedia").click(browseExternalMedia);
     $("#browseExternalMedia").change(handleBrowseExternalMedia);
+    $("#mnuInsertRow").click(handleInsertRow);
+    $("#mnuDeleteRow").click(handleDeleteRow);
+
+    // Dropdown menu customization
+    $('#dropdown').on('show', function(event, dropdownData) {
+        var $li=$("#playlist .selected");
+        if($li.is("li:last-child")) {
+            $(this).find(".diabled-for-lastrow").addClass("disabled");
+        }
+    }).on('hide', function(event, dropdownData) {
+        $(this).find("li").removeClass("disabled");
+    });
 
     // Mouse movement handler (for fullscreen mode)
     var uiTimeout, uiStatus=false;
@@ -491,6 +503,20 @@ function handleBrowseExternalMedia(evt) {
         $input.val(text).focus().trigger("keyup");
         // Clear the file field's value so the onchange event fires every time
         this.value="";
+    }
+}
+function handleInsertRow(){
+    var $li=$("#playlist .selected");
+    if( ! $(this).closest("li").hasClass("disabled") ) {
+        addPlaylistRow($li);
+        nextVideo();
+    }
+}
+function handleDeleteRow(){
+    var $li=$("#playlist .selected");
+    if( ! $(this).closest("li").hasClass("disabled") ) {
+        nextVideo();
+        $li.remove();
     }
 }
 
