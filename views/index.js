@@ -603,9 +603,11 @@ function handleBrowseExternalMedia(evt) {
     if( this.files.length ) {
         // Append this to the existing value of selected input
         var $input=$("#playlist li.selected input");
+        var data=[];
         var text=$input.val().trim();
-        if( text.length ) text+="; ";
-        text+=this.files[0].path;
+        if( text.length ) data.push(text);
+        for( var i=0 ; i<this.files.length ; i++ ) data.push(this.files[i].path);
+        text=data.join("; ");
         // Focus and trigger keyup event so the form element behaves normally
         $input.val(text).focus().trigger("keyup");
         // Clear the file field's value so the onchange event fires every time
