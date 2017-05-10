@@ -255,7 +255,7 @@ function mountPlaylistItem(li,index=0,start=false) {
             if( video.src!=`file://${os.type()=="Darwin"?"":"/"}${escapedPath}` ) video.src=escapedPath;
             video.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
             if(start) playVideo();
-        } else if( item instanceof ExternalMedia && item.isImage() ) {
+        } else if( item.isImage() ) {
             video.src="";
             video.currentTime=0;
             video.setAttribute("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
@@ -315,7 +315,7 @@ function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
     var sum=0, cueMax;
     // Calculate sum of all past videos/cues played so far
     for( var vi=0 ; vi<=videoIndex ; vi++ ) {
-        if( videos[vi] instanceof ExternalMedia && videos[vi].isImage() ) {
+        if( videos[vi].isImage() ) {
             // If it's an image, just give the image duration constant
             sum+=ExternalMedia.IMAGE_DURATION;
         } else {
