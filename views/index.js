@@ -25,13 +25,25 @@ const FF_SECS=15;
 const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
-var imageTimeout=null;
+var imageTimeout=null, batchEntryTimeout=null;
 var emu=new ExternalMediaUtil();
 var svu=new ScriptureVideoUtil(videopath);
 var su=new ScriptureUtil();
 var rvu=new ReferenceVideoUtil(videopath);
 var ru=new ReferenceUtil();
 var videoAppController=new WebVttWrapperController()
+
+// Hashing Function
+String.prototype.hashCode = function(){
+	var hash = 0;
+	if (this.length == 0) return hash;
+	for (i = 0; i < this.length; i++) {
+		char = this.charCodeAt(i);
+		hash = ((hash<<5)-hash)+char;
+		hash = hash & hash; // Convert to 32bit integer
+	}
+	return hash;
+}
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -54,8 +66,60 @@ $(document).ready(()=>{
     $(".vidff").click(fastforwardVideo);
     $("#mnuBrowseExternalMedia").click(browseExternalMedia);
     $("#browseExternalMedia").change(handleBrowseExternalMedia);
+    $("#mnuBatchEntry").click(handleBatchEntry);
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
+
+    // Batch Entry Dialog
+    batchEntryDialog=$( "#batchEntryDialog" ).dialog({
+      autoOpen: false,
+      height: $(window).height() * 0.75,
+      width: $(window).width() * 0.8,
+      modal: true,
+      buttons: [
+          {
+              id: "batchEntrySubmit",
+              text: "Add Items",
+              click: handleBatchEntryAdd
+          },
+          {
+              id: "batchEntryCancel",
+              text: "Cancel",
+              click: function() {
+                  batchEntryDialog.dialog("close");
+              }
+          }
+      ],
+      open: function() {
+          $("#batchEntryDialog textarea").val("");
+          parseBatchEntryTextarea();
+      }
+    });
+    $("#batchEntryDialog textarea").keyup(function(){
+        clearTimeout(batchEntryTimeout);
+        batchEntryTimeout=setTimeout(parseBatchEntryTextarea,800);
+    });
+    function handleBatchEntry(){
+        batchEntryDialog.dialog("open");
+    }
+    function handleBatchEntryAdd(){
+        batchEntryDialog.dialog("close");
+        $("#batchEntryDialog ul li").each((index,elem)=>{
+            let txt=$(elem).text();
+            let $li=$("#playlist .selected");
+            let $input=$li.find("input");
+            if( $input.val().length ) {
+                prependPlaylistRow($li);
+                selectPlaylistItem($li.prev());
+                $li=$("#playlist .selected");
+                $input=$li.find("input");
+            }
+            $input.val(txt);
+            parsePlaylistItem($input);
+            if( $li.is(':last-child') ) appendPlaylistRow($li);
+            selectPlaylistItem($li.next());
+        });
+    }
 
     // Dropdown menu customization
     $('#dropdown').on('show', function(event, dropdownData) {
@@ -80,7 +144,7 @@ $(document).ready(()=>{
     });
 
     // Set up and restore playlist state
-    addPlaylistRow();
+    appendPlaylistRow();
     loadState();
     
     // Playlist sortability
@@ -98,6 +162,35 @@ $(document).ready(()=>{
     // Done!
     console.log("Initialized!");
 });
+
+
+function parseBatchEntryTextarea(){
+    var $ul=$("#batchEntryDialog ul");
+    var $txt=$("#batchEntryDialog textarea");
+    var txt=$txt.val();
+    var prevHash=$ul.prop("data-hash");
+    var hash=txt.hashCode();
+    var lines=txt.split("\n");
+    var content="";
+    if( hash!=prevHash ) {
+        for( var line of lines ) {
+            line=line.trim();
+            let scriptures=su.parseScripturesWithIndex(line);
+            let references=ru.parseReferencesWithIndex(line);
+            let media=emu.parseExternalMediaWithIndex(line);
+            // Combine and sort them according to parse order
+            let objs=scriptures.concat(references).concat(media);
+            objs.sort((a,b)=>a.index-b.index);
+            // Make the text output
+            let lineResult=objs.map(item=>item.obj.toString()).join("; ");
+            if( lineResult.length )
+                content+=`<li>${lineResult}</li>`;
+        }
+        $ul.prop("data-hash",hash).html(content);
+    }
+    if( $ul.find("li").length ) $("#batchEntrySubmit").prop("disabled",false).removeClass("ui-state-disabled");
+    else $("#batchEntrySubmit").prop("disabled",true).addClass("ui-state-disabled");
+}
 
 function selectFirstItem(){
     var $firstli=$("#playlist li:first");
@@ -119,7 +212,7 @@ function loadState() {
         var $input=$li.find("input");
         $input.val(item.text);
         parsePlaylistItem($input);
-        addPlaylistRow($li);
+        appendPlaylistRow($li);
     }
 }
 
@@ -311,7 +404,7 @@ function fastforwardVideo(){
     }
 }
 
-function addPlaylistRow(item) {
+function createPlaylistRow() {
     var newli=$(`
         <li class="new">
             <span class="progress"></span>
@@ -330,9 +423,19 @@ function addPlaylistRow(item) {
         .keyup(playlistItemKeyUp)
         .keydown(playlistItemKeyDown)
     .end();
+    return newli;
+}
+function appendPlaylistRow(item) {
+    var newli=createPlaylistRow();
     if( item ) $(newli).insertAfter(item);
     else $("#playlist ol").append(newli);
 }
+function prependPlaylistRow(item) {
+    var newli=createPlaylistRow();
+    if( item ) $(newli).insertBefore(item);
+    else $("#playlist ol").prepend(newli);
+}
+
 function playlistItemFocus(e){
     var $li;
     if( $(this).is("li") ) $li=$(this);
@@ -375,7 +478,7 @@ function playlistItemKeyUp(e){
         // Just catch this to prevent normal keyup actions below from happening.
         return false;
     } else if( val.length>0 && $li.is(":last-child") ) {
-        addPlaylistRow($li);
+        appendPlaylistRow($li);
     } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
         $li.next().remove();
     }
@@ -466,6 +569,7 @@ function parsePlaylistItem(fld) {
 
 function windowKeyHandler(e) {
     var key=e.key?e.key.toLowerCase():"";
+    var $targ=$(e.target);
     var cmds={
         "keydown": {
             " ": toggleVideo,
@@ -481,7 +585,7 @@ function windowKeyHandler(e) {
             "arrowright": fastforwardVideo
         }
     };
-    if( $(e.target).is("input") ) {
+    if( $targ.is("input") || $targ.is("textarea") ) {
         return true;
     } else if( cmds[e.type].hasOwnProperty(key) ) {
         e.preventDefault();
@@ -511,8 +615,8 @@ function handleBrowseExternalMedia(evt) {
 function handleInsertRow(){
     var $li=$("#playlist .selected");
     if( ! $(this).closest("li").hasClass("disabled") ) {
-        addPlaylistRow($li);
-        nextVideo();
+        prependPlaylistRow($li);
+        prevVideo();
     }
 }
 function handleDeleteRow(){

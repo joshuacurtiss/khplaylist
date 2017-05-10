@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
 	<title>Play Video</title>
-    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="../bower_components/jquery-ui/themes/sunny/jquery-ui.min.css" />
+	<link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css" />
 	<link rel="stylesheet" href="../bower_components/jquery-dropdown/jquery.dropdown.min.css" />
     <link href="index.css" type="text/css" rel="stylesheet"/>
     <script src="index.js" language="javascript"></script>
@@ -12,6 +13,16 @@
     <form class="hidden">
         <input id="browseExternalMedia" type="file" accept=".mov,.mp4,.m4v,.webm,.jpg,.png,.gif,.bmp" />
     </form>
+    <div id="batchEntryDialog" title="Batch Entry">
+        <p>
+            Type or paste contents into the textbox on the left. The detected scriptures
+            and publication references will appear on the right.
+        </p>
+        <form>
+            <textarea id="batchEntryText"></textarea>
+        </form>
+        <ul></ul>
+    </div>
     <div id="videoContainer">
         <video id="video"></video>
         <div id="text"></div>
@@ -48,6 +59,7 @@
     <div id="dropdown" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
         <ul class="jq-dropdown-menu">
             <li><a id="mnuBrowseExternalMedia" href="#">Browse external media…</a></li>
+            <li><a id="mnuBatchEntry" href="#">Batch entry…</a></li>
             <li class="jq-dropdown-divider"></li>
             <li class="diabled-for-lastrow"><a id="mnuInsertRow" href="#">Insert Row</a></li>
             <li class="diabled-for-lastrow"><a id="mnuDeleteRow" href="#">Delete Row</a></li>
