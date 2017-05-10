@@ -292,6 +292,9 @@ body.playlistMode #videoControls {
 
 /* Batch Entry */
 
+#batchEntryDialog {
+    display:none;
+}
 #batchEntryDialog form {
     width: 50%;
     float: left;
