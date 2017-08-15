@@ -69,6 +69,7 @@ $(document).ready(()=>{
     $("#mnuBatchEntry").click(handleBatchEntry);
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
+    $("#playlistClear").click(handlePlaylistClear);
 
     // Set External Media filetypes
     var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
@@ -574,6 +575,14 @@ function parsePlaylistItem(fld) {
             .prop("videos",[])
             .prop("data-videos-text","")
             .find(".tag").text(tagText);
+    }
+}
+
+function handlePlaylistClear() {
+    if( confirm("Are you sure you want to clear the playlist?") ) {
+        $("#playlist li").remove();
+        appendPlaylistRow();
+        selectFirstItem();
     }
 }
 

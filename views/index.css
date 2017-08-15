@@ -243,6 +243,32 @@ body.playlistMode #videoControls {
     background-color: #734a1e;
 }
 
+#playlistTabs {
+    position: absolute;
+    z-index: -1;
+    top: 91vh;
+    left: 53vw;
+}
+
+#playlistTabs a {
+    background-color: #151515;
+    border: 2px solid #222;
+    border-radius: 0 0 8px 8px;
+    padding: 1.1vh 1.5vw 1vh 1vw;
+    margin-right: 0.9vw;
+    font-size: 0.9em;
+    color: #999;
+}
+
+#playlistTabs a:hover {
+    background-color: #252525;
+    cursor: pointer;
+}
+
+#playlistTabs a:active {
+    background-color: #292929;
+}
+
 .cornerbuttons {
     position: absolute;
     right: 1vw;
