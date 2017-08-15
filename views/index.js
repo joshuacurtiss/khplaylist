@@ -70,6 +70,11 @@ $(document).ready(()=>{
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
 
+    // Set External Media filetypes
+    var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
+    acceptlist=acceptarray.map((ext)=>"."+ext).join();
+    $("#browseExternalMedia").attr("accept",acceptlist);
+
     // Batch Entry Dialog
     batchEntryDialog=$( "#batchEntryDialog" ).dialog({
       autoOpen: false,
