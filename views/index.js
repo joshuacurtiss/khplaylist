@@ -569,6 +569,11 @@ function parsePlaylistItem(fld) {
                 .prop("data-videos-text",txt)
                 .find(".tag").text(tagText);
         }
+    } else if( $.trim(txt).length==0 ) {
+        $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+            .prop("videos",[])
+            .prop("data-videos-text","")
+            .find(".tag").text(tagText);
     }
 }
 
