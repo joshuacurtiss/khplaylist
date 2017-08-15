@@ -10,6 +10,7 @@
     <script src="index.js" language="javascript"></script>
 </head>
 <body class="playlistMode">
+    <div id="notificationBanner"></div>
     <form class="hidden">
         <input id="browseExternalMedia" type="file" multiple="multiple" accept=".setinjs" />
     </form>
@@ -41,7 +42,8 @@
         </form>
     </div>
     <div id="playlistTabs" class="playlistMode">
-        <a id="playlistClear"><i class="fa fa-fw fa-trash"></i> Clear List</a>
+        <a id="playlistSave"><i class="fa fa-fw fa-floppy-o"></i> Save</a>
+        <a id="playlistClear"><i class="fa fa-fw fa-trash"></i> Clear</a>
     </div>
     <div id="fullscreenVideoProgress" class="fullscreenMode ui progress"></div>
     <div id="fullscreeninfo" class="fullscreenMode ui">

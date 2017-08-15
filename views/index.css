@@ -21,6 +21,18 @@ video {
     display:none;
 }
 
+/***** NOTIFICATION BANNER *****/
+
+#notificationBanner {
+    z-index: 9999;
+    border-bottom: 2px solid #333;
+    background-color: #222;
+    color: #ddd;
+    padding: 1.5vh 1vw;
+    text-align: center;
+    display: none;
+}
+
 /***** FULLSCREEN *****/
 
 body.fullscreenMode .playlistMode {display:none;}

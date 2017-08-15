@@ -70,6 +70,7 @@ $(document).ready(()=>{
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
     $("#playlistClear").click(handlePlaylistClear);
+    $("#playlistSave").click(saveStateWithFeedback);
 
     // Set External Media filetypes
     var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
@@ -238,6 +239,15 @@ function saveState() {
         "playlist": list
     };
     fs.writeJsonSync(`${__dirname}/../data/state.json`,state);
+}
+
+function saveStateWithFeedback() {
+    saveState();
+    $("#notificationBanner")
+        .html('<i class="fa fa-floppy-o"></i> Playlist saved!')
+        .slideDown(800)
+        .delay(3000)
+        .slideUp(800);
 }
 
 function mountPlaylistItem(li,index=0,start=false) {
