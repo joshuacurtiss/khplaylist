@@ -5,6 +5,7 @@
   "main": "main.js",
   "scripts": {
     "install": "bower install -F",
+    "postinstall": "node postinstall",
     "start": "electron main.js",
     "build": "electron-packager . KH-Playlist --ignore=node_modules/electron-* --out=builds --overwrite"
   },
@@ -25,6 +26,7 @@
   },
   "dependencies": {
     "escape-string-regexp": "^1.0.5",
+    "ffbinaries": "^1.0.2",
     "fs-extra": "^1.0.0",
     "moment": "^2.17.1",
     "moment-duration-format": "^1.3.0"

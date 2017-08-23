@@ -26,12 +26,12 @@ const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var imageTimeout=null, batchEntryTimeout=null;
-var emu=new ExternalMediaUtil();
-var svu=new ScriptureVideoUtil(videopath);
+var videoAppController=new WebVttWrapperController({ffprobe:`${__dirname}${path.sep}..${path.sep}bin${path.sep}ffprobe`});
+var emu=new ExternalMediaUtil(videoAppController);
+var svu=new ScriptureVideoUtil(videopath,videoAppController);
 var su=new ScriptureUtil();
-var rvu=new ReferenceVideoUtil(videopath);
+var rvu=new ReferenceVideoUtil(videopath,videoAppController);
 var ru=new ReferenceUtil();
-var videoAppController=new WebVttWrapperController()
 
 // Hashing Function
 String.prototype.hashCode = function(){

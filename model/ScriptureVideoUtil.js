@@ -7,10 +7,10 @@ let escapeStringRegexp=require("escape-string-regexp");
 
 class ScriptureVideoUtil {
 
-    constructor(videopath) {
+    constructor(videopath,videoAppController) {
         // Video path is the path under which all video files are housed. Subdirectories ok.
         this.videopath=videopath;
-        this.videoAppController=new WrapperController();
+        this.videoAppController=videoAppController || new WrapperController();
         this.videoApp=this.videoAppController.wrapper;
         return this;
     }

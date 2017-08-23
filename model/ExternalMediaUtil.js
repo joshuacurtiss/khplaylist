@@ -4,8 +4,8 @@ let fs=require("fs-extra");
 
 class ExternalMediaUtil {
 
-    constructor() {
-        this.videoAppController=new WrapperController();
+    constructor(videoAppController) {
+        this.videoAppController=videoAppController || new WrapperController();
         this.videoApp=this.videoAppController.wrapper;
         return this;
     }
