@@ -51,7 +51,7 @@ class ScriptureVideo {
 
     getCueByVerse(verse) {
         var verseRegex=new RegExp(`\\b${verse}\\s*$`);
-        return this.webvtt.data.find((c)=>{return verseRegex.test(c.content)});
+        return this.webvtt.data.find(c=>verseRegex.test(c.content));
     }
 
 }

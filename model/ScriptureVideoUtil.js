@@ -54,8 +54,8 @@ class ScriptureVideoUtil {
                 "r\\d{3}p\\.\\w{3}";
             var videoRegex=new RegExp(baseFileRegex+"$","i");
             var webvttRegex=new RegExp(baseFileRegex+"\\.\\w{3,6}$","i");
-            var videoFile=this.videos.find((value)=>{return videoRegex.test(value)});
-            var webvttFile=this.webvtts.find((value)=>{return webvttRegex.test(value)});
+            var videoFile=this.videos.find(value=>videoRegex.test(value));
+            var webvttFile=this.webvtts.find(value=>webvttRegex.test(value));
             if( !videoFile ) {
                 // If no video file for the chapter, try looking for the verses
                 let versevideos=[];
@@ -66,7 +66,7 @@ class ScriptureVideoUtil {
                         "0{0,2}"+chapter+"-"+
                         "0{0,2}"+v+"_"+
                         "r\\d{3}p\\.\\w{3}$","i");
-                    videoFile=this.videos.find((value)=>{return videoRegex.test(value)});
+                    videoFile=this.videos.find(value=>videoRegex.test(value));
                     if( videoFile ) {
                         console.log(`For verse ${v}, I found "${videoFile}"`);
                         // TODO: Using getInfoSync() significantly reduces performance. Can we use promises/fibers to keep it asynchronous?
