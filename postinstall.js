@@ -5,22 +5,26 @@
 
 const ffbinaries=require('ffbinaries');
 const path=require('path');
+const fs=require('fs');
 
 function download(callback) {
-    var dest = __dirname + path.sep + 'bin';
-    var platform = ffbinaries.detectPlatform();
-    ffbinaries.downloadFiles('ffprobe', {destination: dest}, (err, data) => {
-        console.log('Downloading ffprobe binary to '+dest+'.');
-        console.log('err', err);
-        console.log('data', data);
-        callback(err, data);
-    });
+    var platform=ffbinaries.detectPlatform();
+    var dest=__dirname + path.sep + 'bin' + path.sep;
+    var binaryfilename='ffprobe'+(platform.substr(0,3)=='win'?'.exe':'');
+    if( ! fs.existsSync(dest+binaryfilename) ) {
+        ffbinaries.downloadFiles('ffprobe', {destination: dest}, (err, data) => {
+            console.log('Downloading ffprobe binary to: '+dest);
+            callback(err, data);
+        });
+    } else {
+        console.log(`Binary already exists at ${dest}${binaryfilename}, no action taken!`);
+    }
 }
 
 download(function(err, data) {
     if (err) {
-        console.log('Downloads failed.');
+        console.log('Download failed.', err);
     } else {
-        console.log('Downloads successful.');
+        console.log('Download successful.');
     }
 });
