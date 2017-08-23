@@ -4,11 +4,12 @@
  */
 
 const ffbinaries=require('ffbinaries');
+const path=require('path');
 
 function download(callback) {
-    var dest = __dirname + '/bin';
+    var dest = __dirname + path.sep + 'bin';
     var platform = ffbinaries.detectPlatform();
-    ffbinaries.downloadFiles(['ffprobe'], {quiet: true, destination: dest}, function (err, data) {
+    ffbinaries.downloadFiles('ffprobe', {destination: dest}, (err, data) => {
         console.log('Downloading ffprobe binary to '+dest+'.');
         console.log('err', err);
         console.log('data', data);
