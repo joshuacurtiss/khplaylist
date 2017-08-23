@@ -471,7 +471,7 @@ function playlistItemBlur(){
 }
 function playlistItemKeyDown(e){
     var key=e.key.toLowerCase();
-    var fullSelection=(e.target.value==window.getSelection().toString());
+    var fullSelection=(e.target.value==window.getSelection().toString() && e.target.value.length>0);
     if( fullSelection && key==" " ) {
         toggleVideo();
         return false;
