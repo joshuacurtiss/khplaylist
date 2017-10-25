@@ -7,6 +7,8 @@ app.on("ready", () => {
     //videoWin.webContents.openDevTools();   // Opening the dev tools
 });
 
+exports.dir=__dirname;
+
 exports.quit=()=>{
     app.quit();
 }

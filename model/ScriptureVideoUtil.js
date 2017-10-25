@@ -7,32 +7,33 @@ let escapeStringRegexp=require("escape-string-regexp");
 
 class ScriptureVideoUtil {
 
-    constructor(videopath,videoAppController) {
-        // Video path is the path under which all video files are housed. Subdirectories ok.
-        this.videopath=videopath;
+    constructor(videopaths="", videoAppController, cacheManager) {
+        // Video paths are the paths under which all video files are housed.
+        this.videopaths=videopaths;
         this.videoAppController=videoAppController || new WrapperController();
         this.videoApp=this.videoAppController.wrapper;
+        this.cacheManager=cacheManager;
         return this;
     }
 
-    get videopath(){return this._videopath}
-    set videopath(videopath) {
-        this._videopath=videopath||"";
+    get videopaths(){return this._videopaths}
+    set videopaths(videopaths="") {
+        this._videopaths=Array.isArray(videopaths)?videopaths:[videopaths];
         // Keep a list of all the videos
-        var pathwalk=[];
-        try {
-            pathwalk=fs.walkSync(this.videopath);
-        } catch(err) {}
-        var videos=[], webvtts=[], f, ext;
-        for( var p of pathwalk ) {
-            f=p.split(path.sep).pop();
-            ext=f.split(".").pop().toLowerCase();
-            if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
-            else if( ScriptureVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(p);
+        var videos=[], f, ext;
+        for( var videopath of this._videopaths ) {
+            var pathwalk=[];
+            try {
+                pathwalk=fs.walkSync(videopath);
+            } catch(err) {}
+            for( var p of pathwalk ) {
+                f=path.basename(p);
+                ext=path.extname(f).toLowerCase();
+                if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
+            }
         }
-        console.log(`Found ${pathwalk.length} items in video path, resulting in ${videos.length} videos and ${webvtts.length} webvtt files.`);
+        console.log(`Found ${videos.length} video files.`);
         this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
-        this.webvtts=webvtts;
     }
 
     /*
@@ -53,9 +54,8 @@ class ScriptureVideoUtil {
                 chapter+"_"+
                 "r\\d{3}p\\.\\w{3}";
             var videoRegex=new RegExp(baseFileRegex+"$","i");
-            var webvttRegex=new RegExp(baseFileRegex+"\\.\\w{3,6}$","i");
             var videoFile=this.videos.find(value=>videoRegex.test(value));
-            var webvttFile=this.webvtts.find(value=>webvttRegex.test(value));
+            var webvttFile=this.cacheManager.findWebvttFile(videoFile);
             if( !videoFile ) {
                 // If no video file for the chapter, try looking for the verses
                 let versevideos=[];
@@ -98,9 +98,7 @@ class ScriptureVideoUtil {
                             console.error(err.toString());
                             cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ScriptureVideo(scripture,videoFile));
                         } else {
-                            var webvttpath=videoFile+".webvtt";
-                            this.webvtts.push(webvttpath);
-                            fs.writeFileSync(webvttpath, webvtt.toString());
+                            var webvttpath=this.cacheManager.saveWebvttFile(videoFile,webvtt.toString());
                             console.log(`Created ${webvttpath}!`);
                             cb(null,new ScriptureVideo(scripture,videoFile,webvtt));
                         } 
@@ -120,7 +118,6 @@ class ScriptureVideoUtil {
 
 }
 
-ScriptureVideoUtil.VIDEOEXT = ["mp4","m4v","mov"];
-ScriptureVideoUtil.WEBVTTEXT = ["webvtt","vtt"];
+ScriptureVideoUtil.VIDEOEXT = [".mp4",".m4v",".mov"];
 
 module.exports=ScriptureVideoUtil;

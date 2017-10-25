@@ -7,31 +7,32 @@ let escapeStringRegexp=require("escape-string-regexp");
 
 class ReferenceVideoUtil {
 
-    constructor(videopath,videoAppController) {
+    constructor(videopaths="", videoAppController, cacheManager) {
         // Video path is the path under which all video files are housed. Subdirectories ok.
-        this.videopath=videopath;
+        this.videopaths=videopaths;
         this.videoAppController=videoAppController || new WrapperController();
         this.videoApp=this.videoAppController.wrapper;
+        this.cacheManager=cacheManager;
         return this;
     }
 
-    get videopath(){return this._videopath}
-    set videopath(path) {
-        this._videopath=path||"";
+    get videopaths(){return this._videopaths}
+    set videopaths(videopaths="") {
+        this._videopaths=Array.isArray(videopaths)?videopaths:[videopaths];
         // Keep a list of all the videos
-        var pathwalk=[];
-        try {
-            pathwalk=fs.walkSync(this.videopath);
-        } catch(err) {}
         var videos=[], webvtts=[], f, ext;
-        for( var p of pathwalk ) {
-            f=p.split(path.sep).pop();
-            ext=f.split(".").pop().toLowerCase();
-            if( ReferenceVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
-            else if( ReferenceVideoUtil.WEBVTTEXT.indexOf(ext)>=0 ) webvtts.push(p);
+        for( var videopath of this._videopaths ) {
+            var pathwalk=[];
+            try {
+                pathwalk=fs.walkSync(videopath);
+            } catch(err) {}
+            for( var p of pathwalk ) {
+                f=path.basename(p);
+                ext=path.extname(f).toLowerCase();
+                if( ReferenceVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
+            }
         }
         this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
-        this.webvtts=webvtts;
     }
 
     /*
@@ -55,7 +56,7 @@ class ReferenceVideoUtil {
             var videoRegex=new RegExp(baseFileRegex+"$","i");
             var webvttRegex=new RegExp(baseFileRegex+"\\.\\w{3,6}$","i");
             var videoFile=this.videos.find(value=>videoRegex.test(value));
-            var webvttFile=this.webvtts.find(value=>webvttRegex.test(value));
+            var webvttFile=this.cacheManager.findWebvttFile(videoFile);
             if( !videoFile ) {
                 // No video file. Report the error.
                 console.log(`No video file for ${reference.toString()}.`);
@@ -71,9 +72,7 @@ class ReferenceVideoUtil {
                             cb({code:"indexerr",tag:"Index Error",message:err.toString()},new ReferenceVideo(reference,videoFile));
                         } else if( webvtt.data.length ) {
                             // Generated WebVTT is good. Save it and use it.
-                            var webvttpath=videoFile+".webvtt";
-                            this.webvtts.push(webvttpath);
-                            fs.writeFileSync(webvttpath, webvtt.toString());
+                            var webvttpath=this.cacheManager.saveWebvttFile(videoFile,webvtt.toString());
                             console.log(`Created ${webvttpath}!`);
                             cb(null,new ReferenceVideo(reference,videoFile,webvtt));
                         } else {
@@ -103,7 +102,6 @@ class ReferenceVideoUtil {
 
 }
 
-ReferenceVideoUtil.VIDEOEXT = ["mp4","m4v","mov"];
-ReferenceVideoUtil.WEBVTTEXT = ["webvtt","vtt"];
+ReferenceVideoUtil.VIDEOEXT = [".mp4",".m4v",".mov"];
 
 module.exports=ReferenceVideoUtil;

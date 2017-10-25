@@ -6,6 +6,7 @@ const main=electron.remote.require("./main.js");
 const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
+const hash=require("string-hash");
 const WebVttWrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
 const ExternalMedia=require("../model/ExternalMedia");
 const ExternalMediaUtil=require("../model/ExternalMediaUtil");
@@ -15,6 +16,7 @@ const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
 const Reference=require("../bower_components/theoreference/Reference");
 const ReferenceUtil=require("../bower_components/theoreference/ReferenceUtil");
 const ReferenceVideoUtil=require("../model/ReferenceVideoUtil");
+const WebvttCacheManager=require("../model/WebvttCacheManager");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 require("../bower_components/jquery-ui/jquery-ui");
 require("../bower_components/jquery-dropdown/jquery.dropdown.min");
@@ -26,24 +28,18 @@ const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var imageTimeout=null, batchEntryTimeout=null;
-var videoAppController=new WebVttWrapperController({ffprobe:`${__dirname}${path.sep}..${path.sep}bin${path.sep}ffprobe`});
+var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.sep}bin${path.sep}ffprobe`});
 var emu=new ExternalMediaUtil(videoAppController);
-var svu=new ScriptureVideoUtil(videopath,videoAppController);
+var svu=new ScriptureVideoUtil([videopath], videoAppController, new WebvttCacheManager({
+    cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
+    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache"
+}));
 var su=new ScriptureUtil();
-var rvu=new ReferenceVideoUtil(videopath,videoAppController);
+var rvu=new ReferenceVideoUtil([videopath], videoAppController, new WebvttCacheManager({
+    cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
+    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache"
+}));
 var ru=new ReferenceUtil();
-
-// Hashing Function
-String.prototype.hashCode = function(){
-	var hash = 0;
-	if (this.length == 0) return hash;
-	for (i = 0; i < this.length; i++) {
-		char = this.charCodeAt(i);
-		hash = ((hash<<5)-hash)+char;
-		hash = hash & hash; // Convert to 32bit integer
-	}
-	return hash;
-}
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -176,10 +172,10 @@ function parseBatchEntryTextarea(){
     var $txt=$("#batchEntryDialog textarea");
     var txt=$txt.val();
     var prevHash=$ul.prop("data-hash");
-    var hash=txt.hashCode();
+    var thisHash=hash(txt);
     var lines=txt.split("\n");
     var content="";
-    if( hash!=prevHash ) {
+    if( thisHash!=prevHash ) {
         for( var line of lines ) {
             line=line.trim();
             let scriptures=su.parseScripturesWithIndex(line);
@@ -193,7 +189,7 @@ function parseBatchEntryTextarea(){
             if( lineResult.length )
                 content+=`<li>${lineResult}</li>`;
         }
-        $ul.prop("data-hash",hash).html(content);
+        $ul.prop("data-hash",thisHash).html(content);
     }
     if( $ul.find("li").length ) $("#batchEntrySubmit").prop("disabled",false).removeClass("ui-state-disabled");
     else $("#batchEntrySubmit").prop("disabled",true).addClass("ui-state-disabled");
@@ -208,10 +204,10 @@ function selectFirstItem(){
 function loadState() {
     var state;
     try {
-        state=require("../data/state");
+        state=require(main.dir+path.sep+"data"+path.sep+"state");
     } catch(e) {
         console.log("Error loading state. Using defaults.");
-        state=require("../data/default");
+        state=require(main.dir+path.sep+"data"+path.sep+"default");
     } 
     $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
     for( var item of state.playlist ) {
@@ -238,7 +234,7 @@ function saveState() {
         "mode": $("body").attr("class"),
         "playlist": list
     };
-    fs.writeJsonSync(`${__dirname}/../data/state.json`,state);
+    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}state.json`,state);
 }
 
 function saveStateWithFeedback() {

@@ -4,3 +4,4 @@ bin
 builds
 dist
 data/state.json
+data/webvttcache/*.webvtt
