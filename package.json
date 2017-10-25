@@ -7,6 +7,7 @@
     "install": "bower install -F",
     "postinstall": "node postinstall",
     "start": "electron main.js",
+    "test": "node_modules/mocha/bin/mocha",
     "build": "electron-packager . KH-Playlist --ignore=node_modules/electron-* --out=builds --overwrite"
   },
   "repository": {
@@ -20,15 +21,17 @@
   },
   "homepage": "https://github.com/joshuacurtiss/khplaylist",
   "devDependencies": {
-    "chai": "^3.5.0",
-    "electron": "^1.4.15",
-    "electron-packager": "^8.5.2"
+    "chai": "^4.1.2",
+    "electron": "^1.7.9",
+    "electron-packager": "^9.1.0",
+    "mocha": "^4.0.1"
   },
   "dependencies": {
     "escape-string-regexp": "^1.0.5",
-    "ffbinaries": "^1.0.2",
+    "ffbinaries": "^1.0.3",
     "fs-extra": "^1.0.0",
-    "moment": "^2.17.1",
-    "moment-duration-format": "^1.3.0"
+    "moment": "^2.19.1",
+    "moment-duration-format": "^1.3.0",
+    "string-hash": "^1.1.3"
   }
 }
