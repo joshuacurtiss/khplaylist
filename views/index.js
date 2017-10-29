@@ -30,17 +30,14 @@ var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var imageTimeout=null, batchEntryTimeout=null;
 var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.sep}bin${path.sep}ffprobe`});
 var emu=new ExternalMediaUtil(videoAppController);
-var svu=new ScriptureVideoUtil([videopath], videoAppController, new WebvttCacheManager({
+var cachemgr=new WebvttCacheManager({
     cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
     internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache",
     patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
-}));
+});
+var svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
 var su=new ScriptureUtil();
-var rvu=new ReferenceVideoUtil([videopath], videoAppController, new WebvttCacheManager({
-    cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache",
-    patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
-}));
+var rvu=new ReferenceVideoUtil([videopath], videoAppController, cachemgr);
 var ru=new ReferenceUtil();
 
 $(document).ready(()=>{
