@@ -227,8 +227,7 @@ function saveState() {
         var txt=$(el).find("input").val();
         if(txt.length) {
             list.push({
-                "text": txt,
-                "after": ""
+                "text": txt
             });
         }
     });
