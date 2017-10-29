@@ -1,6 +1,7 @@
+const escapeStringRegexp=require("escape-string-regexp");
 const fs=require("fs-extra");
-const path=require("path");
 const hash=require("string-hash");
+const path=require("path");
 
 class WebvttCacheManager {
 
@@ -9,9 +10,14 @@ class WebvttCacheManager {
         var options=Object.assign(WebvttCacheManager.DEFAULTOPTIONS,opts);
         this.cacheMode=options.cacheMode;
         this.internalCacheDir=options.internalCacheDir;
-        if( this.cacheMode==WebvttCacheManager.CACHEMODES.EXTERNAL ) this.webvttpaths=options.webvttpaths;
-        else if( this.cacheMode==WebvttCacheManager.CACHEMODES.INTERNAL ) this.webvttpaths=this.internalCacheDir;
-        else this.webvttpaths=[];
+        this.patchDir=options.patchDir;
+        if( this.cacheMode==WebvttCacheManager.CACHEMODES.EXTERNAL ) {
+            this.webvttpaths=[this.patchDir].concat(options.webvttpaths);
+        } else if( this.cacheMode==WebvttCacheManager.CACHEMODES.INTERNAL ) {
+            this.webvttpaths=[this.patchDir,this.internalCacheDir];
+        } else {
+            this.webvttpaths=[this.patchDir];
+        }
         return this;
     }
 
@@ -36,21 +42,32 @@ class WebvttCacheManager {
     }
 
     calcWebvttPath(videofile="") {
+        var webvttFilename=path.basename(videofile)+"."+hash(videofile)+WebvttCacheManager.EXTENSIONS[0];
         if( this.cacheMode==WebvttCacheManager.CACHEMODES.INTERNAL ) 
-            return this.internalCacheDir+path.sep+path.basename(videofile)+"."+hash(videofile)+WebvttCacheManager.EXTENSIONS[0];
+            return this.internalCacheDir+path.sep+webvttFilename;
         else if( this.cacheMode==WebvttCacheManager.CACHEMODES.EXTERNAL )
-            return videofile+WebvttCacheManager.EXTENSIONS[0];
+            return path.dirname(videofile)+path.sep+webvttFilename;
         else
             return undefined;
     }
 
+    calcWebvttRegEx(videofile="") {
+        // Just return undefined if they did not pass a path, or if cache mode is "none".
+        if( videofile=="" ) return undefined;
+        if( this.cacheMode==WebvttCacheManager.CACHEMODES.NONE ) return undefined;
+        // Accumulate possibilities:
+        const extregex=`(?:${WebvttCacheManager.EXTENSIONS.map(x=>escapeStringRegexp(x)).join('|')})`;
+        var possibilities=[
+            escapeStringRegexp(path.sep+path.basename(videofile)+"."+hash(videofile))+extregex+"$",
+            escapeStringRegexp(path.sep+path.basename(videofile))+extregex+"$"
+        ];
+        // Join them in a regex:
+        return new RegExp(`(${possibilities.join('|')})`,'i');
+    }
+
     findWebvttFile(videofile="") {
-        var webvttPath=this.calcWebvttPath(videofile);
-        // TODO: Note this approach is TOO exacting.  Want to be able to reference 
-        // an internal library of webvtts as well, for correcting erroneous files with 
-        // bad chapter references. I dunno, maybe that should be done as an exception
-        // anyway. We'll see later when I can think clearer. 
-        return this.webvtts.find(value=>webvttPath===value);
+        var webvttPathRegEx=this.calcWebvttRegEx(videofile);
+        return this.webvtts.find(value=>webvttPathRegEx.test(value));
     }
 
     saveWebvttFile(videofile, webvtt) {
@@ -76,7 +93,8 @@ WebvttCacheManager.CACHEMODES={
 WebvttCacheManager.DEFAULTOPTIONS={
     webvttpaths: [],
     cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: path.normalize(__dirname+path.sep+"webvttcache")
+    internalCacheDir: path.normalize(__dirname+path.sep+"webvttcache"),
+    patchDir: path.normalize(__dirname+path.sep+"webvttpatches")
 };
 
 module.exports=WebvttCacheManager;

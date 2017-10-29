@@ -32,12 +32,14 @@ var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.s
 var emu=new ExternalMediaUtil(videoAppController);
 var svu=new ScriptureVideoUtil([videopath], videoAppController, new WebvttCacheManager({
     cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache"
+    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache",
+    patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
 }));
 var su=new ScriptureUtil();
 var rvu=new ReferenceVideoUtil([videopath], videoAppController, new WebvttCacheManager({
     cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache"
+    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache",
+    patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
 }));
 var ru=new ReferenceUtil();
 
