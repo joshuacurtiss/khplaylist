@@ -67,7 +67,7 @@ class WebvttCacheManager {
 
     findWebvttFile(videofile="") {
         var webvttPathRegEx=this.calcWebvttRegEx(videofile);
-        return this.webvtts.find(value=>webvttPathRegEx.test(value));
+        return webvttPathRegEx?this.webvtts.find(value=>webvttPathRegEx.test(value)):undefined;
     }
 
     saveWebvttFile(videofile, webvtt) {
