@@ -1,3 +1,4 @@
+const REGEX=require("../bower_components/theoreference/RegEx");
 let Reference=require("../bower_components/theoreference/Reference");
 let ReferenceVideo=require("./ReferenceVideo");
 let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
@@ -100,6 +101,43 @@ class ReferenceVideoUtil {
         }
     }
 
+    createStudyVideos(reference,opts,cb){
+        const DEFAULTOPTS={includeArt: true};
+        // Handle if no opts are passed in.
+        if( cb===undefined && typeof opts==="function" ) {
+            cb=opts;
+            opts={};
+        }
+        var options=Object.assign(DEFAULTOPTS, opts);
+        if( reference ) {
+            this.createVideo(reference,(err,refvid)=>{
+                var ref=refvid.reference;
+                // Establish the cues. Add one more, to get the last question
+                var cues=ref.cues.slice();
+                var lastCueIndex=cues[cues.length-1];
+                if( lastCueIndex+1 < ref.availableCues.length ) cues.push(lastCueIndex+1);
+                // Loop thru the cues and find all art and question cues.
+                var refvids=[], prevart=[];
+                var goodCues=ref.availableCues.filter((cue,index)=>{
+                    var good=cues.includes(index) && /^(q|art)\s/i.test(cue);
+                    var artmatch=cue.match(/^art(?:\sCaption)?\s(\d+)\s*.*/i);
+                    if( ! artmatch ) return good;
+                    if( ! prevart.includes(artmatch[1]) && options.includeArt ) prevart.push(artmatch[1]);
+                    else good=false;
+                    return good;
+                });
+                // Each "good" cue should be a separate reference video:
+                goodCues.forEach(cue=>{
+                    var parmatch=cue.match(/^q\s(.+)/i);
+                    var p=parmatch?parmatch[1]:cue;
+                    var r=new Reference(ref.publication, ref.chapter.toString(), p);
+                    refvids.push(new ReferenceVideo(r,refvid.path,refvid.webvtt));
+                });
+                cb(null,refvids);
+            });
+        }
+    }
+    
 }
 
 ReferenceVideoUtil.VIDEOEXT = [".mp4",".m4v",".mov"];
