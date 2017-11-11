@@ -119,7 +119,7 @@ class ReferenceVideoUtil {
                 // Loop thru the cues and find all art and question cues.
                 var refvids=[], prevart=[];
                 var goodCues=ref.availableCues.filter((cue,index)=>{
-                    var good=cues.includes(index) && /^(q|art)\s/i.test(cue);
+                    var good=cues.includes(index) && /^(q\s|art|box)/i.test(cue);
                     var artmatch=cue.match(/^art(?:\sCaption)?\s(\d+)\s*.*/i);
                     if( ! artmatch ) return good;
                     if( ! prevart.includes(artmatch[1]) && options.includeArt ) prevart.push(artmatch[1]);
