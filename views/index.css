@@ -328,9 +328,9 @@ body.playlistMode #videoControls {
     border-bottom-color: #555;
 }
 
-/* Batch Entry */
+/* Dialogs */
 
-#batchEntryDialog {
+.dialog {
     display:none;
 }
 #batchEntryDialog form {
@@ -343,4 +343,7 @@ body.playlistMode #videoControls {
 }
 #batchEntryDialog ul {
     margin-left: 54%;
+}
+#studyDialog input {
+    width: 99%;
 }

@@ -27,7 +27,7 @@ const FF_SECS=15;
 const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
-var imageTimeout=null, batchEntryTimeout=null;
+var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.sep}bin${path.sep}ffprobe`});
 var emu=new ExternalMediaUtil(videoAppController);
 var cachemgr=new WebvttCacheManager({
@@ -61,6 +61,7 @@ $(document).ready(()=>{
     $(".vidff").click(fastforwardVideo);
     $("#mnuBrowseExternalMedia").click(browseExternalMedia);
     $("#browseExternalMedia").change(handleBrowseExternalMedia);
+    $("#mnuStudy").click(handleStudy);
     $("#mnuBatchEntry").click(handleBatchEntry);
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
@@ -123,6 +124,57 @@ $(document).ready(()=>{
         });
     }
 
+    // Study Dialog
+    studyDialog=$( "#studyDialog" ).dialog({
+        autoOpen: false,
+        height: $(window).height() * 0.85,
+        width: $(window).width() * 0.4,
+        modal: true,
+        buttons: [
+            {
+                id: "studySubmit",
+                text: "Add Items",
+                click: handleStudyAdd
+            },
+            {
+                id: "studyCancel",
+                text: "Cancel",
+                click: function() {
+                    studyDialog.dialog("close");
+                }
+            }
+        ],
+        open: function() {
+            $("#studyText").val("");
+            parseStudyText();
+        }
+      });
+      $("#studyDialog input").keyup(function(){
+        clearTimeout(studyTimeout);
+        studyTimeout=setTimeout(parseStudyText,800);
+      });
+      function handleStudy(){
+          studyDialog.dialog("open");
+      }
+      function handleStudyAdd(){
+          studyDialog.dialog("close");
+          $("#studyDialog ul li").each((index,elem)=>{
+              let txt=$(elem).text();
+              let $li=$("#playlist .selected");
+              let $input=$li.find("input");
+              if( $input.val().length ) {
+                  prependPlaylistRow($li);
+                  selectPlaylistItem($li.prev());
+                  $li=$("#playlist .selected");
+                  $input=$li.find("input");
+              }
+              $input.val(txt);
+              parsePlaylistItem($input);
+              if( $li.is(':last-child') ) appendPlaylistRow($li);
+              selectPlaylistItem($li.next());
+          });
+      }
+  
     // Dropdown menu customization
     $('#dropdown').on('show', function(event, dropdownData) {
         var $li=$("#playlist .selected");
@@ -192,6 +244,33 @@ function parseBatchEntryTextarea(){
     }
     if( $ul.find("li").length ) $("#batchEntrySubmit").prop("disabled",false).removeClass("ui-state-disabled");
     else $("#batchEntrySubmit").prop("disabled",true).addClass("ui-state-disabled");
+}
+
+function parseStudyText(){
+    var $ul=$("#studyDialog ul");
+    var txt=$("#studyDialog input").val().trim();
+    var prevHash=$ul.prop("data-hash");
+    var thisHash=hash(txt);
+    if( thisHash!=prevHash ) {
+        let objs=ru.parseReferencesWithIndex(txt);
+        if( objs.length ) {
+            objs.sort((a,b)=>a.index-b.index);
+            objs.forEach(item=>{
+                ref=item.obj;
+                rvu.createStudyVideos(ref,(err,refvids)=>{
+                    var content="";
+                    refvids.forEach(refvid=>content+=`<li>${refvid.displayName}</li>`);
+                    $ul.prop("data-hash",thisHash).html(content);
+                    if( $ul.find("li").length ) $("#studySubmit").prop("disabled",false).removeClass("ui-state-disabled");
+                    else $("#studySubmit").prop("disabled",true).addClass("ui-state-disabled");
+                });
+            });
+        } else {
+            $ul.prop("data-hash",thisHash).html("");
+            if( $ul.find("li").length ) $("#studySubmit").prop("disabled",false).removeClass("ui-state-disabled");
+            else $("#studySubmit").prop("disabled",true).addClass("ui-state-disabled");    
+        }
+    }
 }
 
 function selectFirstItem(){
