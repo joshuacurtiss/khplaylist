@@ -4,4 +4,5 @@ bin
 builds
 dist
 data/state.json
+data/playlist.json
 data/webvttcache/*.webvtt

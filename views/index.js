@@ -289,9 +289,15 @@ function loadState() {
     } catch(e) {
         console.log("Error loading state. Using defaults.");
         state=require(main.dir+path.sep+"data"+path.sep+"default");
-    } 
+    }
+    var playlist=[];
+    try {
+        playlist=require(main.dir+path.sep+"data"+path.sep+"playlist");
+    } catch(e) {
+        console.log("Error loading playlist. Creating a blank playlist.");
+    }
     $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
-    for( var item of state.playlist ) {
+    for( var item of playlist ) {
         var $li=$("#playlist li:last");
         var $input=$li.find("input");
         $input.val(item.text);
@@ -311,10 +317,10 @@ function saveState() {
         }
     });
     var state={
-        "mode": $("body").attr("class"),
-        "playlist": list
+        "mode": $("body").attr("class")
     };
     fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}state.json`,state);
+    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}playlist.json`,list);
 }
 
 function saveStateWithFeedback() {
