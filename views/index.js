@@ -73,6 +73,9 @@ $(document).ready(()=>{
     acceptlist=acceptarray.map(ext=>"."+ext).join();
     $("#browseExternalMedia").attr("accept",acceptlist);
 
+    // Dialogs
+    $(".dialog form").submit(false);
+
     // Batch Entry Dialog
     batchEntryDialog=$( "#batchEntryDialog" ).dialog({
       autoOpen: false,
