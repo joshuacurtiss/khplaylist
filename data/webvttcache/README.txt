@@ -1,0 +1,1 @@
+This directory contains cache files for generated webvtt for video files.
