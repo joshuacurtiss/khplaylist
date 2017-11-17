@@ -547,12 +547,24 @@ function playlistItemBlur(){
 }
 function playlistItemKeyDown(e){
     var key=e.key.toLowerCase();
-    var fullSelection=(e.target.value==window.getSelection().toString() && e.target.value.length>0);
+    var $input=$(e.target);
+    var $li=$input.parent();
+    var val=$input.val();
+    var fullSelection=(val==window.getSelection().toString() && val.length>0);
     if( fullSelection && key==" " ) {
+        // If text is fully selected and hit spacebar, toggle play/pause.
         toggleVideo();
         return false;
     } else if( fullSelection && key=="f" ) {
+        // If text is fully selected and hit "f", toggle fullscreen mode.
         toggleFullscreen();
+        return false;
+    } else if( (e.key=="Backspace" || e.key=="Delete") && val.length==0 && ! $li.is(":last-child") && $li.parent().find("input:placeholder-shown").length>1 ) {
+        // If hit backspace or delete key and field is already empty, delete the row.
+        // BUT ONLY IF: You're not the last row, and it isn't the last empty row. 
+        // We find empty input boxes using the :placeholder-shown selector, nifty trick.
+        handleDeleteRow();
+        if( e.key=="Backspace" ) prevVideo(); // Backspace will roll up to next video, otherwise will move onto the field filling the deleted row.
         return false;
     }
 }
@@ -561,17 +573,21 @@ function playlistItemKeyUp(e){
     var $li=$input.parent();
     var val=$input.val();
     if( e.key=="ArrowUp" ) {
+        // Arrow up to previous video
         prevVideo();
         return false;
     } else if( e.key=="ArrowDown" || e.key=="Enter" ) {
+        // Arrow down to next video
         nextVideo();
         return false;
     } else if( e.key==" " ) {
         // Just catch this to prevent normal keyup actions below from happening.
         return false;
     } else if( val.length>0 && $li.is(":last-child") ) {
+        // If you're typing and this is the last row, add another empty row at end.
         appendPlaylistRow($li);
     } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
+        // Delete nearby empty rows
         $li.next().remove();
     }
     if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 )
