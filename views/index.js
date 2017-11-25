@@ -7,6 +7,9 @@ const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
 const hash=require("string-hash");
+const yazl=require("yazl");
+const yauzl=require("yauzl");
+const progress=require('progress-stream');
 const WebVttWrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
 const ExternalMedia=require("../model/ExternalMedia");
 const ExternalMediaUtil=require("../model/ExternalMediaUtil");
@@ -67,6 +70,8 @@ $(document).ready(()=>{
     $("#mnuDeleteRow").click(handleDeleteRow);
     $("#playlistClear").click(handlePlaylistClear);
     $("#playlistSave").click(saveStateWithFeedback);
+    $("#playlistExport").click(handlePlaylistExport);
+    $("#playlistImport").click(handlePlaylistImport);
 
     // Set External Media filetypes
     var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
@@ -75,6 +80,15 @@ $(document).ready(()=>{
 
     // Dialogs
     $(".dialog form").submit(false);
+
+    // Progress Dialog
+    progressDialog=$( "#progressDialog" ).dialog({
+        autoOpen: false,
+        closeOnEscape: false,
+        resizable: false,
+        modal: true
+    });
+    progressBar=$("#progressbar").progressbar();
 
     // Batch Entry Dialog
     batchEntryDialog=$( "#batchEntryDialog" ).dialog({
@@ -200,9 +214,9 @@ $(document).ready(()=>{
         },2000);
     });
 
-    // Set up and restore playlist state
-    appendPlaylistRow();
+    // Set up and restore playlist/state
     loadState();
+    loadPlaylist();
     
     // Playlist sortability
     $("#playlist ol").sortable({
@@ -282,21 +296,113 @@ function selectFirstItem(){
     else selectPlaylistItem($firstli);
 }
 
-function loadState() {
-    var state;
-    try {
-        state=require(main.dir+path.sep+"data"+path.sep+"state");
-    } catch(e) {
-        console.log("Error loading state. Using defaults.");
-        state=require(main.dir+path.sep+"data"+path.sep+"default");
-    }
+function handlePlaylistExport() {
+    purgeMedia();
+    saveState();
+    electron.remote.dialog.showSaveDialog(main.win,{
+        title: "Save Playlist",
+        defaultPath: "playlist.zip",
+        buttonLabel: "Save",
+        message: "Please choose a location to save your playlist."
+    }, function(filename){
+        if( !filename ) return;
+        progressDialog.dialog("open");
+        progressBar.progressbar("value",false);
+        var zip=new yazl.ZipFile();
+        // Zip playlist.json
+        zip.addFile(main.dir+path.sep+"data"+path.sep+"playlist.json","playlist.json");
+        // Find all valid media files in the ~/data/media directory and add them
+        var pathwalk=[];
+        var filelen=0;
+        var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
+        try {
+            pathwalk=fs.walkSync(main.dir+path.sep+"data"+path.sep+"media");
+        } catch(err) {}
+        for( var p of pathwalk ) {
+            f=path.basename(p);
+            ext=path.extname(f).toLowerCase();
+            if( exts.indexOf(ext)>=0 ) {
+                // Keep track of how many bytes need to be added
+                var stat=fs.statSync(p);
+                filelen+=stat.size;
+                // Add them file
+                zip.addFile(p,f,{compress:false});
+            }
+        }
+        // Update the progress bar while the zip pipeline is progressing
+        var prog=progress({time:250, length:filelen});
+        prog.on("progress", function(progress){
+            progressBar.progressbar("value",Math.round(progress.percentage));
+        });
+        zip.outputStream
+            .pipe(prog)
+            .pipe(fs.createWriteStream(filename)).on("close", function() {
+                // When done, have UI update
+                progressBar.progressbar("value",100);
+                setTimeout(function(){progressDialog.dialog("close")},900);
+            });
+        zip.end();
+    });
+}
+
+function handlePlaylistImport() {
+    electron.remote.dialog.showOpenDialog(main.win,{
+        title: "Import Playlist",
+        buttonLabel: "Import",
+        message: "Please choose the playlist you want to import.",
+        filters: [{name:'Zip', extensions: ['zip']}]
+    }, function(filenames){
+        if( !filenames ) return;
+        // Start UI for import
+        progressDialog.dialog("open");
+        progressBar.progressbar("value",false);
+        var zipstats=fs.statSync(filenames[0]);
+        // Delete existing media
+        var pathwalk=[];
+        var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
+        try {
+            pathwalk=fs.walkSync(main.dir+path.sep+"data"+path.sep+"media");
+        } catch(err) {}
+        for( var p of pathwalk ) {
+            if( exts.indexOf(path.extname(p).toLowerCase())>=0 ) fs.removeSync(p);
+        }
+        // Unzip the archive
+        yauzl.open(filenames[0], {lazyEntries: true}, function(err, zipfile) {
+            if (err) throw err;
+            zipfile.readEntry();
+            zipfile.on("entry", function(entry) {
+                if (/\/$/.test(entry.fileName)) {
+                    // Directory entry, skip it.
+                    zipfile.readEntry();
+                } else {
+                    // file entry
+                    zipfile.openReadStream(entry, function(err, readStream) {
+                        if (err) throw err;
+                        readStream.on("end", function() {
+                            zipfile.readEntry();
+                        });
+                        var p=main.dir+path.sep+"data"+path.sep;
+                        if( entry.fileName.toLowerCase()!=="playlist.json" ) p+="media"+path.sep;
+                        readStream.pipe(fs.createWriteStream(p+entry.fileName));
+                    });
+                }
+            }).on("end", function(){
+                loadPlaylist();
+                progressDialog.dialog("close")
+            });
+        });
+    });
+}
+
+function loadPlaylist() {
     var playlist=[];
     try {
-        playlist=require(main.dir+path.sep+"data"+path.sep+"playlist");
+        playlist=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"playlist.json");
     } catch(e) {
         console.log("Error loading playlist. Creating a blank playlist.");
     }
-    $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
+    $("#playlist li").remove();
+    appendPlaylistRow();
     for( var item of playlist ) {
         var $li=$("#playlist li:last");
         var $input=$li.find("input");
@@ -304,6 +410,44 @@ function loadState() {
         parsePlaylistItem($input);
         appendPlaylistRow($li);
     }
+    purgeMedia();
+}
+
+function loadState() {
+    var state;
+    try {
+        state=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"state.json");
+    } catch(e) {
+        console.log("Error loading state. Using defaults.");
+        state=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"default.json");
+    }
+    $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
+}
+
+function purgeMedia() {
+    var pathwalk=[];
+    var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
+    console.log("Purging media...");
+    try {
+        fs.walk(main.dir+path.sep+"data"+path.sep+"media")
+            .on('data', item=>{
+                // Collect paths of all valid files (with the right extensions)
+                if( exts.includes(path.extname(item.path).toLowerCase()) ) pathwalk.push(item.path);
+            })
+            .on('end', ()=>{
+                // Collect all paths of ExternalMedia objects in the playlist
+                var mediaPlaylistPaths=[];
+                $("#playlist li").each((i,li)=>{
+                    $(li).prop("videos").forEach(vo=>{
+                        if( vo instanceof ExternalMedia ) mediaPlaylistPaths.push(vo.path);
+                    });
+                });
+                // Filter out the files that are not in the media playlist and delete them
+                pathwalk
+                    .filter(path=>!mediaPlaylistPaths.includes(path))
+                    .forEach(path=>fs.remove(path));
+            });
+    } catch(err) {}
 }
 
 function saveState() {
@@ -691,6 +835,7 @@ function handlePlaylistClear() {
         $("#playlist li").remove();
         appendPlaylistRow();
         selectFirstItem();
+        purgeMedia();
     }
 }
 
@@ -753,6 +898,7 @@ function handleDeleteRow(){
     if( ! $(this).closest("li").hasClass("disabled") ) {
         nextVideo();
         $li.remove();
+        purgeMedia();        
     }
 }
 

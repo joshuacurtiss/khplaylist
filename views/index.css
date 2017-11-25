@@ -21,6 +21,14 @@ video {
     display:none;
 }
 
+.ccw90 {
+    transform: rotate(270deg);
+}
+
+.cw90 {
+    transform: rotate(90deg);
+}
+
 /***** NOTIFICATION BANNER *****/
 
 #notificationBanner {
@@ -259,7 +267,7 @@ body.playlistMode #videoControls {
     position: absolute;
     z-index: -1;
     top: 91vh;
-    left: 53vw;
+    left: 51vw;
 }
 
 #playlistTabs a {
