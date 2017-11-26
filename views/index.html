@@ -24,6 +24,20 @@
         </form>
         <ul></ul>
     </div>
+    <div id="settingsDialog" class="dialog" title="Settings">
+        <form>
+            <p>
+                Start app in playlist or fullscreen mode?
+            </p>
+            <p>
+                <select name="mode" id="mode">
+                    <option value="playlistMode">Playlist</option>
+                    <option value="fullscreenMode">Fullscreen</option>
+                </select>
+            </p>
+        </form>
+        <ul></ul>
+    </div>
     <div id="studyDialog" class="dialog" title="Add Study Materials">
         <p>
             Please type in the reference of the material to be studied. 
@@ -69,10 +83,12 @@
     </div>
     <div class="fullscreenMode cornerbuttons ui">
         <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
+        <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
         <i class="fa fa-fw fa-compress togglebutton fullscreenToggle"></i>
     </div>
     <div class="playlistMode cornerbuttons ui">
         <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
+        <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
         <i class="fa fa-fw fa-expand togglebutton fullscreenToggle"></i>
     </div>
     <div id="dropdown" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">

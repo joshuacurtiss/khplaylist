@@ -20,6 +20,7 @@ const Reference=require("../bower_components/theoreference/Reference");
 const ReferenceUtil=require("../bower_components/theoreference/ReferenceUtil");
 const ReferenceVideoUtil=require("../model/ReferenceVideoUtil");
 const WebvttCacheManager=require("../model/WebvttCacheManager");
+const SettingsUtil=require("../model/SettingsUtil");
 const jQuery=$=require("../bower_components/jquery/dist/jquery");
 require("../bower_components/jquery-ui/jquery-ui");
 require("../bower_components/jquery-dropdown/jquery.dropdown.min");
@@ -31,6 +32,7 @@ const RW_SECS=5;
 var video, $curTime, $chname;
 var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
+var settings=new SettingsUtil(main.dir+path.sep+"data"+path.sep+"state.json");
 var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.sep}bin${path.sep}ffprobe`});
 var emu=new ExternalMediaUtil(videoAppController);
 var cachemgr=new WebvttCacheManager({
@@ -49,6 +51,9 @@ $(document).ready(()=>{
     $curTime=$(".curTime");
     $chname=$(".chname");
 
+    // Set up basic UI
+    $('body').removeClass('fullscreenMode playlistMode').addClass(settings.mode);
+    
     // Wire up listeners
     $(window).keydown(windowKeyHandler);
     $(window).keyup(windowKeyHandler);
@@ -56,6 +61,7 @@ $(document).ready(()=>{
     video.addEventListener("timeupdate", updateVideoUI, false);
     video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
+    $(".settingsButton").click(handleSettings);
     $(".powerButton").click(quit);
     $(".vidbackward").click(prevVideo);
     $(".vidforward").click(nextVideo);
@@ -69,7 +75,7 @@ $(document).ready(()=>{
     $("#mnuInsertRow").click(handleInsertRow);
     $("#mnuDeleteRow").click(handleDeleteRow);
     $("#playlistClear").click(handlePlaylistClear);
-    $("#playlistSave").click(saveStateWithFeedback);
+    $("#playlistSave").click(savePlaylistWithFeedback);
     $("#playlistExport").click(handlePlaylistExport);
     $("#playlistImport").click(handlePlaylistImport);
 
@@ -91,31 +97,64 @@ $(document).ready(()=>{
     progressBar=$("#progressbar").progressbar();
 
     // Batch Entry Dialog
-    batchEntryDialog=$( "#batchEntryDialog" ).dialog({
-      autoOpen: false,
-      height: $(window).height() * 0.75,
-      width: $(window).width() * 0.8,
-      modal: true,
-      buttons: [
-          {
-              id: "batchEntrySubmit",
-              text: "Add Items",
-              click: handleBatchEntryAdd
-          },
-          {
-              id: "batchEntryCancel",
-              text: "Cancel",
-              click: function() {
-                  batchEntryDialog.dialog("close");
-              }
-          }
-      ],
-      open: function() {
-          $("#batchEntryDialog textarea").val("");
-          parseBatchEntryTextarea();
-      }
+    settingsDialog=$( "#settingsDialog" ).dialog({
+        autoOpen: false,
+        height: $(window).height() * 0.5,
+        width: $(window).width() * 0.7,
+        modal: true,
+        buttons: [
+            {
+                id: "settingsSave",
+                text: "Save",
+                click: handleSettingsSave
+            },
+            {
+                id: "settingsCancel",
+                text: "Cancel",
+                click: function() {
+                    settingsDialog.dialog("close");
+                }
+            }
+        ],
+        open: function() {
+            $("#mode").val(settings.mode);
+        }
     });
-    $("#batchEntryDialog textarea").keyup(function(){
+    function handleSettings(){
+        settingsDialog.dialog("open");
+    }
+    function handleSettingsSave(){
+        settings.mode=$("#mode").val();
+        settings.save();
+        settingsDialog.dialog("close");
+    }
+  
+    // Batch Entry Dialog
+    batchEntryDialog=$( "#batchEntryDialog" ).dialog({
+        autoOpen: false,
+        height: $(window).height() * 0.75,
+        width: $(window).width() * 0.8,
+        modal: true,
+        buttons: [
+            {
+                id: "batchEntrySubmit",
+                text: "Add Items",
+                click: handleBatchEntryAdd
+            },
+            {
+                id: "batchEntryCancel",
+                text: "Cancel",
+                click: function() {
+                    batchEntryDialog.dialog("close");
+                }
+            }
+        ],
+        open: function() {
+            $("#batchEntryDialog textarea").val("");
+            parseBatchEntryTextarea();
+        }
+      });
+      $("#batchEntryDialog textarea").keyup(function(){
         clearTimeout(batchEntryTimeout);
         batchEntryTimeout=setTimeout(parseBatchEntryTextarea,800);
     });
@@ -214,8 +253,7 @@ $(document).ready(()=>{
         },2000);
     });
 
-    // Set up and restore playlist/state
-    loadState();
+    // Set up and restore playlist
     loadPlaylist();
     
     // Playlist sortability
@@ -298,7 +336,8 @@ function selectFirstItem(){
 
 function handlePlaylistExport() {
     purgeMedia();
-    saveState();
+    settings.save();
+    savePlaylist();
     electron.remote.dialog.showSaveDialog(main.win,{
         title: "Save Playlist",
         defaultPath: "playlist.zip",
@@ -413,15 +452,26 @@ function loadPlaylist() {
     purgeMedia();
 }
 
-function loadState() {
-    var state;
-    try {
-        state=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"state.json");
-    } catch(e) {
-        console.log("Error loading state. Using defaults.");
-        state=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"default.json");
-    }
-    $('body').removeClass('fullscreenMode playlistMode').addClass(state.mode);
+function savePlaylist() {
+    var list=[];
+    $("#playlist li").each((index,el)=>{
+        var txt=$(el).find("input").val();
+        if(txt.length) {
+            list.push({
+                "text": txt
+            });
+        }
+    });
+    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}playlist.json`,list);
+}
+
+function savePlaylistWithFeedback() {
+    savePlaylist();
+    $("#notificationBanner")
+        .html('<i class="fa fa-floppy-o"></i> Playlist saved!')
+        .slideDown(800)
+        .delay(3000)
+        .slideUp(800);
 }
 
 function purgeMedia() {
@@ -448,32 +498,6 @@ function purgeMedia() {
                     .forEach(path=>fs.remove(path));
             });
     } catch(err) {}
-}
-
-function saveState() {
-    var list=[];
-    $("#playlist li").each((index,el)=>{
-        var txt=$(el).find("input").val();
-        if(txt.length) {
-            list.push({
-                "text": txt
-            });
-        }
-    });
-    var state={
-        "mode": $("body").attr("class")
-    };
-    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}state.json`,state);
-    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}playlist.json`,list);
-}
-
-function saveStateWithFeedback() {
-    saveState();
-    $("#notificationBanner")
-        .html('<i class="fa fa-floppy-o"></i> Playlist saved!')
-        .slideDown(800)
-        .delay(3000)
-        .slideUp(800);
 }
 
 function mountPlaylistItem(li,index=0,start=false) {
@@ -903,6 +927,7 @@ function handleDeleteRow(){
 }
 
 function quit(){
-    saveState();
+    settings.save()
+    savePlaylist();
     main.quit();
 }
