@@ -26,18 +26,19 @@ require("../bower_components/jquery-ui/jquery-ui");
 require("../bower_components/jquery-dropdown/jquery.dropdown.min");
 
 // Globals
+const APPDATADIR=electron.remote.app.getPath('userData')+path.sep;
 const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
 const FF_SECS=15;
 const RW_SECS=5;
 var video, $curTime, $chname;
-var videopath=os.homedir()+path.sep+(os.type()=="Darwin"?"Movies":"Videos");
+var videopath=electron.remote.app.getPath('videos');
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
-var settings=new SettingsUtil(main.dir+path.sep+"data"+path.sep+"state.json");
-var videoAppController=new WebVttWrapperController({ffprobe:`${main.dir}${path.sep}bin${path.sep}ffprobe`});
+var settings=new SettingsUtil(APPDATADIR+"state.json");
+var videoAppController=new WebVttWrapperController({ffprobe:main.dir+path.sep+"bin"+path.sep+"ffprobe"});
 var emu=new ExternalMediaUtil(videoAppController);
 var cachemgr=new WebvttCacheManager({
     cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: main.dir+path.sep+"data"+path.sep+"webvttcache",
+    internalCacheDir: APPDATADIR+"webvttcache",
     patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
 });
 var svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
@@ -349,13 +350,13 @@ function handlePlaylistExport() {
         progressBar.progressbar("value",false);
         var zip=new yazl.ZipFile();
         // Zip playlist.json
-        zip.addFile(main.dir+path.sep+"data"+path.sep+"playlist.json","playlist.json");
+        zip.addFile(APPDATADIR+"playlist.json","playlist.json");
         // Find all valid media files in the ~/data/media directory and add them
         var pathwalk=[];
         var filelen=0;
         var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
         try {
-            pathwalk=fs.walkSync(main.dir+path.sep+"data"+path.sep+"media");
+            pathwalk=fs.walkSync(APPDATADIR+"media");
         } catch(err) {}
         for( var p of pathwalk ) {
             f=path.basename(p);
@@ -400,7 +401,7 @@ function handlePlaylistImport() {
         var pathwalk=[];
         var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
         try {
-            pathwalk=fs.walkSync(main.dir+path.sep+"data"+path.sep+"media");
+            pathwalk=fs.walkSync(APPDATADIR+"media");
         } catch(err) {}
         for( var p of pathwalk ) {
             if( exts.indexOf(path.extname(p).toLowerCase())>=0 ) fs.removeSync(p);
@@ -420,7 +421,7 @@ function handlePlaylistImport() {
                         readStream.on("end", function() {
                             zipfile.readEntry();
                         });
-                        var p=main.dir+path.sep+"data"+path.sep;
+                        var p=APPDATADIR;
                         if( entry.fileName.toLowerCase()!=="playlist.json" ) p+="media"+path.sep;
                         readStream.pipe(fs.createWriteStream(p+entry.fileName));
                     });
@@ -436,7 +437,7 @@ function handlePlaylistImport() {
 function loadPlaylist() {
     var playlist=[];
     try {
-        playlist=fs.readJsonSync(main.dir+path.sep+"data"+path.sep+"playlist.json");
+        playlist=fs.readJsonSync(APPDATADIR+"playlist.json");
     } catch(e) {
         console.log("Error loading playlist. Creating a blank playlist.");
     }
@@ -462,7 +463,7 @@ function savePlaylist() {
             });
         }
     });
-    fs.writeJsonSync(`${main.dir}${path.sep}data${path.sep}playlist.json`,list);
+    fs.writeJsonSync(APPDATADIR+"playlist.json",list);
 }
 
 function savePlaylistWithFeedback() {
@@ -479,7 +480,7 @@ function purgeMedia() {
     var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
     console.log("Purging media...");
     try {
-        fs.walk(main.dir+path.sep+"data"+path.sep+"media")
+        fs.walk(APPDATADIR+"media")
             .on('data', item=>{
                 // Collect paths of all valid files (with the right extensions)
                 if( exts.includes(path.extname(item.path).toLowerCase()) ) pathwalk.push(item.path);
