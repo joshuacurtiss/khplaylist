@@ -29,6 +29,11 @@ video {
     transform: rotate(90deg);
 }
 
+.ui-widget-overlay {
+    background: #000;
+    opacity: .6;
+}
+
 /***** NOTIFICATION BANNER *****/
 
 #notificationBanner {
