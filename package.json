@@ -4,10 +4,10 @@
   "description": "A playlist for meeting media including JW Library videos as well as other external media.",
   "main": "main.js",
   "scripts": {
-    "install": "bower install -F",
+    "install": "node_modules/.bin/bower install -F",
     "postinstall": "node postinstall",
     "start": "electron main.js",
-    "test": "node_modules/mocha/bin/mocha",
+    "test": "node_modules/.bin/mocha",
     "build": "electron-packager . KH-Playlist --ignore=node_modules/electron-* --out=builds --overwrite"
   },
   "repository": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/joshuacurtiss/khplaylist",
   "devDependencies": {
+    "bower": "^1.8.2",
     "chai": "^4.1.2",
     "electron": "^1.7.9",
     "electron-packager": "^9.1.0",
