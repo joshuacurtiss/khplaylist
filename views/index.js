@@ -101,8 +101,8 @@ $(document).ready(()=>{
     // Batch Entry Dialog
     settingsDialog=$( "#settingsDialog" ).dialog({
         autoOpen: false,
-        height: $(window).height() * 0.5,
-        width: $(window).width() * 0.7,
+        height: $(window).height() * 0.4,
+        width: $(window).width() * 0.4,
         modal: true,
         buttons: [
             {
