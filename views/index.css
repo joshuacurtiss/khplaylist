@@ -48,11 +48,12 @@ body.fullscreenMode .playlistMode {display:none;}
 body.fullscreenMode .ui {opacity:0;}
 
 body.fullscreenMode #text {
-    left: 5vw;
+    left: 4vw;
     top: 0;
     bottom: 0;
-    width: 90vw;
+    width: 92vw;
     font-size: 8vh;
+    line-height: 92vh !important;
 }
 
 body.fullscreenMode video {

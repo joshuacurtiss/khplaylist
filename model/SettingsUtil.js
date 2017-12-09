@@ -31,7 +31,8 @@ class SettingsUtil {
 }
 
 SettingsUtil.DEFAULTS={
-    mode: "playlistMode"
+    mode: "playlistMode",
+    secondDisplay: false
 };
 
 module.exports=SettingsUtil;

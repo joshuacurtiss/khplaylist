@@ -49,7 +49,7 @@ var ru=new ReferenceUtil();
 
 $(document).ready(()=>{
     console.log("Hello!");
-    videoController=new VideoController(document.getElementById("video"));
+    videoController=new VideoController(document.getElementById("video"),document.getElementById("text"));
     $curTime=$(".curTime");
     $chname=$(".chname");
 
@@ -120,6 +120,7 @@ $(document).ready(()=>{
         ],
         open: function() {
             $("#mode").val(settings.mode);
+            $("#secondDisplay").prop("checked",settings.secondDisplay);
         }
     });
     function handleSettings(){
@@ -127,8 +128,10 @@ $(document).ready(()=>{
     }
     function handleSettingsSave(){
         settings.mode=$("#mode").val();
+        settings.secondDisplay=$("#secondDisplay").prop("checked");
         settings.save();
         settingsDialog.dialog("close");
+        checkSecondDisplay();        
     }
   
     // Batch Entry Dialog
@@ -270,10 +273,21 @@ $(document).ready(()=>{
     // Select first entry
     selectFirstItem();
 
+    // Handle second display
+    checkSecondDisplay();
+
     // Done!
     console.log("Initialized!");
 });
 
+function checkSecondDisplay() {
+    if( settings.secondDisplay && videoController.secondWin===undefined ) {
+        videoController.secondWin=main.createSecondWin();
+    } else if( settings.secondDisplay==false && videoController.secondWin!==undefined ) {
+        videoController.secondWin.close();
+        videoController.secondWin=undefined;
+    }
+}
 
 function parseBatchEntryTextarea(){
     var $ul=$("#batchEntryDialog ul");
@@ -513,6 +527,7 @@ function mountPlaylistItem(li,index=0,start=false) {
         pauseVideo();
         console.log(`Mounting #${index} "${item.displayName}" (with ${item.list.length} cues).`);
         $("#text").hide();
+        videoController.text="";
         videoController.set("data-video-index",index);
         videoController.set("data-cue-index",item.list.length>=0?0:-1);
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
@@ -540,7 +555,8 @@ function mountPlaylistItem(li,index=0,start=false) {
         videoController.currentTime=0;
         videoController.set("data-video-index",-1);
         videoController.set("data-cue-index",-1);
-        $("#text").text(key).css("line-height",$(videoController.video).css("height")).show();
+        videoController.text=key;
+        $("#text").css("line-height",$(videoController.video).css("height")).show();
     }
     checkControls();
 }
@@ -615,7 +631,6 @@ function toggleFullscreen(){
     } else {
         $('body').removeClass('playlistMode').addClass('fullscreenMode');
     }
-    $("#text").css("line-height",$(videoController.video).css("height"));
 }
 
 function checkControls() {

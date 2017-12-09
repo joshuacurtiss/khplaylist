@@ -22,6 +22,22 @@ app.on("ready", () => {
 
 exports.dir=__dirname;
 
+exports.createSecondWin=()=>{
+    var screens=electron.screen.getAllDisplays();
+    var screen=screens.length>1?screens[1]:null;
+    if( screen ) {
+        var secondWin=new BrowserWindow({alwaysOnTop:true, frame:false, autoHideMenuBar:true, x:screen.bounds.x, y:screen.bounds.y});
+        secondWin.loadURL(`file://${__dirname}/views/second.html`);
+        secondWin.webContents.on('dom-ready', function(){
+            secondWin.setFullScreen(true);
+        });
+        secondWin.on("enter-full-screen",(e,i)=>{
+            exports.win.webContents.executeJavaScript(`videoController.pushUpdate()`);
+        });
+        return secondWin;
+    }
+}
+
 exports.quit=()=>{
     app.quit();
 }
