@@ -7,6 +7,8 @@ const path=require("path");
 // Constants
 const APPDATADIR=app.getPath('userData')+path.sep;
 
+var primaryDisplay, secondaryDisplay;
+
 app.on("ready", () => {
 
     // Init app data directories
@@ -18,15 +20,18 @@ app.on("ready", () => {
     videoWin.loadURL(`file://${__dirname}/views/index.html`);
     exports.win=videoWin;
 
+    // Ascertain displays
+    var displays=electron.screen.getAllDisplays();
+    primaryDisplay=electron.screen.getDisplayMatching(videoWin.getBounds());
+    secondaryDisplay=displays.find(display=>display.id!==primaryDisplay.id);
+    
 });
 
 exports.dir=__dirname;
 
 exports.createSecondWin=()=>{
-    var screens=electron.screen.getAllDisplays();
-    var screen=screens.length>1?screens[1]:null;
-    if( screen ) {
-        var secondWin=new BrowserWindow({alwaysOnTop:true, frame:false, autoHideMenuBar:true, x:screen.bounds.x, y:screen.bounds.y});
+    if( secondaryDisplay ) {
+        var secondWin=new BrowserWindow({alwaysOnTop:true, frame:false, autoHideMenuBar:true, x:secondaryDisplay.bounds.x, y:secondaryDisplay.bounds.y});
         secondWin.loadURL(`file://${__dirname}/views/second.html`);
         secondWin.webContents.on('dom-ready', function(){
             secondWin.setFullScreen(true);
