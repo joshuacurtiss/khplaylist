@@ -8,7 +8,7 @@
     "postinstall": "node postinstall",
     "start": "electron main.js",
     "test": "node_modules/.bin/mocha",
-    "build": "electron-packager . KH-Playlist --ignore=node_modules/electron-* --out=builds --overwrite"
+    "build": "electron-packager . KH-Playlist --ignore='(node_modules\/electron-|dev\/)' --out=builds --overwrite"
   },
   "repository": {
     "type": "git",

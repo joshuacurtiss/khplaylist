@@ -35,20 +35,9 @@ var videoController, $curTime, $chname;
 var videopath=electron.remote.app.getPath('videos');
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var settings=new SettingsUtil(APPDATADIR+"state.json");
-var videoAppController=new WebVttWrapperController({ffprobe:main.dir+path.sep+"bin"+path.sep+"ffprobe"});
-var emu=new ExternalMediaUtil(videoAppController);
-var cachemgr=new WebvttCacheManager({
-    cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-    internalCacheDir: APPDATADIR+"webvttcache",
-    patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
-});
-var svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
+var videoAppController, cachemgr, svu, rvu, emu;
 var su=new ScriptureUtil();
-var rvu=new ReferenceVideoUtil([videopath], videoAppController, cachemgr);
 var ru=new ReferenceUtil();
-
-// Purge old webvtt paths. Feed it all videos. Feeds the scripture videos, with expectation that scripture/reference videos have same source.
-cachemgr.purgeOldWebvttFiles(svu.videos);
 
 $(document).ready(()=>{
     console.log("Hello!");
@@ -56,9 +45,21 @@ $(document).ready(()=>{
     $curTime=$(".curTime");
     $chname=$(".chname");
 
-    // Set up basic UI
-    $('body').removeClass('fullscreenMode playlistMode').addClass(settings.mode);
-    
+    // Setup splash
+    $("#splash .splashprogress").progressbar({value:false});
+
+    // Set up video app controller and index of video and webvtt files
+    videoAppController=new WebVttWrapperController({ffprobe:main.dir+path.sep+"bin"+path.sep+"ffprobe"});
+    cachemgr=new WebvttCacheManager({
+        cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
+        internalCacheDir: APPDATADIR+"webvttcache",
+        patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
+    });
+    emu=new ExternalMediaUtil(videoAppController);
+    svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
+    rvu=new ReferenceVideoUtil([videopath], videoAppController, cachemgr);
+    cachemgr.purgeOldWebvttFiles(svu.videos);
+
     // Wire up listeners
     $(window).keydown(windowKeyHandler);
     $(window).keyup(windowKeyHandler);
@@ -280,6 +281,7 @@ $(document).ready(()=>{
     checkSecondDisplay();
 
     // Done!
+    setTimeout(function(){$('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode)},1500);
     console.log("Initialized!");
 });
 

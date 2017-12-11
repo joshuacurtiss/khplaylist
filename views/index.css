@@ -34,6 +34,21 @@ video {
     opacity: .6;
 }
 
+/***** SPLASH *****/
+
+#splash {
+    background-image: url(splash.png);
+    border: 1px solid white;
+    width: 792px; 
+    height: 244px;
+    margin: 33vh auto;
+    border-radius: 8px;
+}
+.splashprogress {
+    margin: 170px 75px 0 98px;
+    height: 10px;
+}
+
 /***** NOTIFICATION BANNER *****/
 
 #notificationBanner {
@@ -90,7 +105,12 @@ body.fullscreenMode video {
 
 /***** PLAYLIST *****/
 
-body.playlistMode .fullscreenMode {display:none;}
+body.playlistMode .fullscreenMode,
+body.playlistMode .splashMode,
+body.fullscreenMode .splashMode,
+body.splashMode .fullscreenMode,
+body.splashMode .playlistMode
+{display:none;}
 
 body.playlistMode #text {
     top:0;
