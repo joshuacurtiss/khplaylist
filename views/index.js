@@ -47,6 +47,9 @@ var su=new ScriptureUtil();
 var rvu=new ReferenceVideoUtil([videopath], videoAppController, cachemgr);
 var ru=new ReferenceUtil();
 
+// Purge old webvtt paths. Feed it all videos. Feeds the scripture videos, with expectation that scripture/reference videos have same source.
+cachemgr.purgeOldWebvttFiles(svu.videos);
+
 $(document).ready(()=>{
     console.log("Hello!");
     videoController=new VideoController(document.getElementById("video"),document.getElementById("text"));

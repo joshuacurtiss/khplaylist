@@ -41,6 +41,22 @@ class WebvttCacheManager {
         this.webvtts=webvtts;
     }
 
+    purgeOldWebvttFiles(videofiles=[]) {
+        for( var videofile of videofiles ) {
+            var webvttfile=this.findWebvttFile(videofile);
+            if( webvttfile ) {
+                var webvttStat=fs.statSync(webvttfile);
+                var videoStat=fs.statSync(videofile);
+                if( webvttStat.birthtime<videoStat.birthtime ) {
+                    console.log(`Removing ${webvttfile} because it is older than its video file.`);
+                    var idx=this.webvtts.indexOf(webvttfile);
+                    if( idx>=0 ) this.webvtts.splice(idx,1);
+                    fs.remove(webvttfile);
+                }
+            }
+        }
+    }
+
     calcWebvttPath(videofile="") {
         var webvttFilename=path.basename(videofile)+"."+hash(videofile)+WebvttCacheManager.EXTENSIONS[0];
         if( this.cacheMode==WebvttCacheManager.CACHEMODES.INTERNAL ) 
