@@ -490,9 +490,9 @@ function savePlaylistWithFeedback() {
     savePlaylist();
     $("#notificationBanner")
         .html('<i class="fa fa-floppy-o"></i> Playlist saved!')
-        .slideDown(800)
-        .delay(3000)
-        .slideUp(800);
+        .show("drop",{direction:"up"},400)
+        .delay(3500)
+        .hide("drop",{direction:"up"},400);
 }
 
 function purgeMedia() {

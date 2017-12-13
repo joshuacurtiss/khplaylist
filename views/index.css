@@ -60,14 +60,26 @@ video {
     height: 10px;
 }
 
-/***** NOTIFICATION BANNER *****/
+/***** BANNERS *****/
+
+#titleBanner {
+    background-color: #222;
+}
+#titleBanner img {
+    height: 40px;
+    margin: 8px 0 0 15px;
+    opacity: 0.5;
+}
 
 #notificationBanner {
+    position: absolute;
     z-index: 9999;
-    border-bottom: 2px solid #333;
-    background-color: #222;
     color: #ddd;
-    padding: 1.5vh 1vw;
+    line-height: 52px;
+    width: 50vw;
+    left: 50vw;
+    top: 0;
+    font-size: 18px;
     text-align: center;
     display: none;
 }
