@@ -37,7 +37,10 @@ exports.createSecondWin=()=>{
             secondWin.setFullScreen(true);
         });
         secondWin.on("enter-full-screen",(e,i)=>{
-            exports.win.webContents.executeJavaScript(`videoController.pushUpdate()`);
+            exports.win.webContents.executeJavaScript(`
+                videoController.pushUpdate();
+                if( ! videoController.video.paused ) videoController.play();
+            `);
         });
         return secondWin;
     }
