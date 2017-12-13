@@ -274,14 +274,14 @@ $(document).ready(()=>{
         revert: true
     });
 
-    // Select first entry
-    selectFirstItem();
-
-    // Handle second display
-    checkSecondDisplay();
-
+    // Remove splash screen and finish up
+    setTimeout(function(){
+        $('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode);
+        selectFirstItem();
+        checkSecondDisplay();
+    },1500);
+    
     // Done!
-    setTimeout(function(){$('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode)},1500);
     console.log("Initialized!");
 });
 
