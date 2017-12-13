@@ -255,7 +255,7 @@ $(document).ready(()=>{
     $(window).mousemove(()=>{
         var currentStatus=uiStatus;
         uiStatus=true;
-        if( ! currentStatus ) $(".fullscreenMode.ui").animate({"opacity":0.8},400);
+        if( ! currentStatus ) $(".fullscreenMode.ui").animate({"opacity":0.7},400);
         if(uiTimeout) clearTimeout(uiTimeout);
         uiTimeout=setTimeout(()=>{
             $(".fullscreenMode.ui").animate({"opacity":0},400,()=>{uiStatus=false});

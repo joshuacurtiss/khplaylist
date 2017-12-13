@@ -16,7 +16,20 @@
             <div class="splashprogress"></div>
         </div>
     </div>
-    <div id="titleBanner" class="playlistMode">
+    <div class="titleBanner playlistMode ui">
+        <div class="cornerbuttons">
+            <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
+            <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
+            <i class="fa fa-fw fa-expand togglebutton fullscreenToggle"></i>
+        </div>
+        <img src="title.png" />
+    </div>
+    <div class="titleBanner fullscreenMode ui">
+        <div class="cornerbuttons">
+            <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
+            <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
+            <i class="fa fa-fw fa-compress togglebutton fullscreenToggle"></i>
+        </div>
         <img src="title.png" />
     </div>
     <div id="notificationBanner"></div>
@@ -91,16 +104,6 @@
         <div class="time">
             <span class="curTime"></span>
         </div>
-    </div>
-    <div class="fullscreenMode cornerbuttons ui">
-        <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
-        <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
-        <i class="fa fa-fw fa-compress togglebutton fullscreenToggle"></i>
-    </div>
-    <div class="playlistMode cornerbuttons ui">
-        <i class="fa fa-fw fa-power-off togglebutton powerButton"></i>
-        <i class="fa fa-fw fa-gear togglebutton settingsButton"></i>
-        <i class="fa fa-fw fa-expand togglebutton fullscreenToggle"></i>
     </div>
     <div id="dropdown" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
         <ul class="jq-dropdown-menu">
