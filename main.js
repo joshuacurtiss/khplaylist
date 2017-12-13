@@ -16,7 +16,12 @@ app.on("ready", () => {
     fs.ensureDirSync(APPDATADIR+"webvttcache")
     
     // Create playlist window
-    var videoWin=new BrowserWindow({frame:false, fullscreen:true});
+    var videoWin=new BrowserWindow({
+        frame:false, 
+        fullscreen:true,
+        backgroundColor: '#000',
+        icon: path.join(APPDATADIR,"icons/png/64x64.png")
+    });
     videoWin.loadURL(`file://${__dirname}/views/index.html`);
     exports.win=videoWin;
 
