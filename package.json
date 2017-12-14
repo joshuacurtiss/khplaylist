@@ -8,8 +8,9 @@
     "postinstall": "node postinstall",
     "start": "electron main.js",
     "test": "node_modules/.bin/mocha",
+    "package": "npm run package-mac && npm run package-win",
     "package-mac": "node_modules/.bin/electron-packager . KHPlaylist --overwrite --platform=darwin --arch=x64 --icon=icons/mac/icon.icns --ignore=icons --ignore=dev --ignore=test --prune=true --out=builds",
-    "package-win": "node_modules/.bin/electron-packager . KHPlaylist --overwrite --platform=win32 --icon=icons/win/icon.ico --ignore=icons --ignore=dev --ignore=test --prune=true --out=builds"
+    "package-win": "node_modules/.bin/electron-packager . KHPlaylist --overwrite --platform=win32 --arch=x64 --arch=ia32 --icon=icons/win/icon.ico --ignore=icons --ignore=dev --ignore=test --prune=true --out=builds"
   },
   "repository": {
     "type": "git",
