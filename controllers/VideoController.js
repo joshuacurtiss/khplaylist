@@ -14,6 +14,7 @@ class VideoController {
 
     set secondWin(win) {
         this._secondWin=win;
+        // If a second window is set, mute this video. If no second window, don't mute this video.
         this.video.muted=(win!==undefined);
     }
 
