@@ -8,6 +8,15 @@ class VideoController {
         return this;
     }
 
+    get secondWin() {
+        return this._secondWin;
+    }
+
+    set secondWin(win) {
+        this._secondWin=win;
+        this.video.muted=(win!==undefined);
+    }
+
     get video() {
         return this.videoElem;
     }
