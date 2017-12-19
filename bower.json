@@ -16,7 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "webvtt": "joshuacurtiss/webvtt#v1.2.1",
+    "webvtt": "joshuacurtiss/webvtt#v1.2.2",
     "scripture": "joshuacurtiss/scripture#716b39e",
     "theoreference": "joshuacurtiss/theoreference#81f06ef",
     "font-awesome": "^4.7.0",

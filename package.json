@@ -8,15 +8,35 @@
     "postinstall": "node postinstall",
     "start": "electron main.js",
     "test": "node_modules/.bin/mocha",
-    "package": "npm run package-mac && npm run package-win",
-    "package-mac": "node_modules/.bin/electron-packager . KHPlaylist --overwrite --platform=darwin --arch=x64 --icon=icons/mac/icon.icns --ignore=icons --ignore=dev --ignore=test --prune=true --out=builds",
-    "package-win": "node_modules/.bin/electron-packager . KHPlaylist --overwrite --platform=win32 --arch=x64 --arch=ia32 --icon=icons/win/icon.ico --ignore=icons --ignore=dev --ignore=test --prune=true --out=builds"
+    "package": "node_modules/.bin/electron-builder --dir",
+    "build-installer-mac": "node_modules/.bin/electron-builder --mac",
+    "build-installer-win": "node_modules/.bin/electron-builder --win --x64 --ia32"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/joshuacurtiss/khplaylist.git"
   },
   "author": "Josh Curtiss <josh@curtiss.me>",
+  "build": {
+    "appId": "me.curtiss.khplaylist",
+    "compression": "maximum",
+    "productName": "KH Playlist",
+    "directories": {
+      "output": "builds"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "icons/mac/icon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icons/win/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true
+    }
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/joshuacurtiss/khplaylist/issues"
@@ -26,7 +46,7 @@
     "bower": "^1.8.2",
     "chai": "^4.1.2",
     "electron": "^1.7.9",
-    "electron-packager": "^9.1.0",
+    "electron-builder": "^19.49.0",
     "mocha": "^4.0.1"
   },
   "dependencies": {

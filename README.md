@@ -40,11 +40,11 @@ These are just some examples demonstrating the flexibility of the playlist.
 
 The application runs on [Node.js](https://nodejs.org) and [Electron](https://electronjs.org), and is compatible with Mac and Windows. To compile it, you will need Node.js installed.
 
-After you download or clone the source, install all dependencies and run the package script. It is named `package-win` for Windows and `package-mac` for Mac. For instance, to build for Windows:
+After you download or clone the source, install all dependencies and run the build script. It is named `build-installer-win` for Windows and `build-installer-mac` for Mac. For instance, to build for Windows:
 
 ```
 npm install
-npm run package-win
+npm run build-installer-win
 ```
 
-It will place a compiled executable for your system architecture into a `builds` directory. 
+It will place a compiled executable for your system architecture into a directory in the `builds` directory, as well as an installer file (Setup.exe for Windows, `dmg` file for Mac). 

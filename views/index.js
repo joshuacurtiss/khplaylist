@@ -44,16 +44,16 @@ $(document).ready(()=>{
     videoController=new VideoController(document.getElementById("video"),document.getElementById("text"));
     $curTime=$(".curTime");
     $chname=$(".chname");
-
+    
     // Setup splash
     $("#splash .splashprogress").progressbar({value:false});
 
     // Set up video app controller and index of video and webvtt files
-    videoAppController=new WebVttWrapperController({ffprobe:main.dir+path.sep+"bin"+path.sep+"ffprobe"});
+    videoAppController=new WebVttWrapperController({ffprobe:path.join(main.dir,"bin","ffprobe"+(os.type()=="Windows_NT"?".exe":""))});
     cachemgr=new WebvttCacheManager({
         cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
         internalCacheDir: APPDATADIR+"webvttcache",
-        patchDir: main.dir+path.sep+"data"+path.sep+"webvttpatches"
+        patchDir: path.join(main.dir,"data","webvttpatches")
     });
     emu=new ExternalMediaUtil(videoAppController);
     svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
