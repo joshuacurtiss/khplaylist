@@ -8,6 +8,7 @@
     "postinstall": "node postinstall",
     "start": "electron main.js",
     "test": "node_modules/.bin/mocha",
+    "gentiff": "tiffutil -cathidpicheck dev/dmgbackground.png dev/dmgbackground@2x.png -out icons/mac/dmgbackground.tiff",
     "package": "node_modules/.bin/electron-builder --dir",
     "build-installer-mac": "node_modules/.bin/electron-builder --mac",
     "build-installer-win": "node_modules/.bin/electron-builder --win --x64 --ia32"
@@ -27,6 +28,9 @@
     "mac": {
       "target": "dmg",
       "icon": "icons/mac/icon.icns"
+    },
+    "dmg": {
+      "background": "icons/mac/dmgbackground.tiff"
     },
     "win": {
       "target": "nsis",
