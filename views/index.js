@@ -3,6 +3,7 @@ const electron=require("electron");
 const main=electron.remote.require("./main.js");
 
 // Dependencies
+const chokidar=require('chokidar');
 const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
@@ -32,10 +33,10 @@ const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
 const FF_SECS=15;
 const RW_SECS=5;
 var videoController, $curTime, $chname;
-var videopath=electron.remote.app.getPath('videos');
+var videopaths=[electron.remote.app.getPath('videos')];
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var settings=new SettingsUtil(APPDATADIR+"state.json");
-var videoAppController, cachemgr, svu, rvu, emu;
+var videoAppController, cachemgr, videopathWatcher, svu, rvu, emu;
 var su=new ScriptureUtil();
 var ru=new ReferenceUtil();
 
@@ -56,10 +57,23 @@ $(document).ready(()=>{
         patchDir: path.join(main.dir,"data","webvttpatches")
     });
     emu=new ExternalMediaUtil(videoAppController);
-    svu=new ScriptureVideoUtil([videopath], videoAppController, cachemgr);
-    rvu=new ReferenceVideoUtil([videopath], videoAppController, cachemgr);
+    svu=new ScriptureVideoUtil(videopaths, videoAppController, cachemgr);
+    rvu=new ReferenceVideoUtil(videopaths, videoAppController, cachemgr);
     cachemgr.purgeOldWebvttFiles(svu.videos);
-
+    videopathWatcher=chokidar.watch(videopaths, {awaitWriteFinish:true, ignorePermissionErrors:true, ignoreInitial:true});
+    videopathWatcher
+        .on('ready', ()=>console.log("Watcher is ready, looking for changes in directories."))
+        .on('add', newpath => {
+            console.log(`${newpath} added.`);
+            rvu.addVideo(newpath);
+            svu.addVideo(newpath);
+        })
+        .on('unlink', oldpath => {
+            console.log(`${oldpath} removed.`);
+            rvu.removeVideo(oldpath);
+            svu.removeVideo(oldpath);
+        });
+  
     // Wire up listeners
     $(window).keydown(windowKeyHandler);
     $(window).keyup(windowKeyHandler);
@@ -951,7 +965,8 @@ function handleDeleteRow(){
 }
 
 function quit(){
-    settings.save()
+    videopathWatcher.close();
+    settings.save();
     savePlaylist();
     main.quit();
 }

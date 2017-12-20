@@ -54,6 +54,7 @@
     "mocha": "^4.0.1"
   },
   "dependencies": {
+    "chokidar": "^1.7.0",
     "escape-string-regexp": "^1.0.5",
     "ffbinaries": "^1.0.3",
     "fs-extra": "^1.0.0",

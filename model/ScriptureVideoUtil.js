@@ -8,6 +8,7 @@ let escapeStringRegexp=require("escape-string-regexp");
 class ScriptureVideoUtil {
 
     constructor(videopaths="", videoAppController, cacheManager) {
+        this.videos=[];
         // Video paths are the paths under which all video files are housed.
         this.videopaths=videopaths;
         this.videoAppController=videoAppController || new WrapperController();
@@ -20,20 +21,15 @@ class ScriptureVideoUtil {
     set videopaths(videopaths="") {
         this._videopaths=Array.isArray(videopaths)?videopaths:[videopaths];
         // Keep a list of all the videos
-        var videos=[], f, ext;
         for( var videopath of this._videopaths ) {
             var pathwalk=[];
             try {
                 pathwalk=fs.walkSync(videopath);
             } catch(err) {}
-            for( var p of pathwalk ) {
-                f=path.basename(p);
-                ext=path.extname(f).toLowerCase();
-                if( ScriptureVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
-            }
+            pathwalk.forEach(p=>this.addVideo(p));
         }
-        console.log(`Found ${videos.length} video files.`);
-        this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
+        console.log(`Found ${this.videos.length} video files.`);
+        this.videos.reverse(); // Reverse to get higher def versions as first choice.
     }
 
     /*
@@ -114,6 +110,17 @@ class ScriptureVideoUtil {
                 });
             }
         }
+    }
+
+    addVideo(newpath) {
+        var ext=path.extname(newpath).toLowerCase();
+        if( ScriptureVideoUtil.VIDEOEXT.includes(ext) ) 
+            this.videos.push(newpath);
+    }
+
+    removeVideo(oldpath) {
+        if( this.videos.includes(oldpath) )
+            this.videos=this.videos.filter(item=>item!==oldpath);
     }
 
 }

@@ -9,6 +9,7 @@ let escapeStringRegexp=require("escape-string-regexp");
 class ReferenceVideoUtil {
 
     constructor(videopaths="", videoAppController, cacheManager) {
+        this.videos=[];
         // Video path is the path under which all video files are housed. Subdirectories ok.
         this.videopaths=videopaths;
         this.videoAppController=videoAppController || new WrapperController();
@@ -21,19 +22,14 @@ class ReferenceVideoUtil {
     set videopaths(videopaths="") {
         this._videopaths=Array.isArray(videopaths)?videopaths:[videopaths];
         // Keep a list of all the videos
-        var videos=[], webvtts=[], f, ext;
         for( var videopath of this._videopaths ) {
             var pathwalk=[];
             try {
                 pathwalk=fs.walkSync(videopath);
             } catch(err) {}
-            for( var p of pathwalk ) {
-                f=path.basename(p);
-                ext=path.extname(f).toLowerCase();
-                if( ReferenceVideoUtil.VIDEOEXT.indexOf(ext)>=0 ) videos.push(p);
-            }
+            pathwalk.forEach(p=>this.addVideo(p));
         }
-        this.videos=videos.reverse(); // Reverse to get higher def versions as first choice.
+        this.videos.reverse(); // Reverse to get higher def versions as first choice.
     }
 
     /*
@@ -136,6 +132,17 @@ class ReferenceVideoUtil {
                 cb(null,refvids);
             });
         }
+    }
+
+    addVideo(newpath) {
+        var ext=path.extname(newpath).toLowerCase();
+        if( ReferenceVideoUtil.VIDEOEXT.includes(ext) ) 
+            this.videos.push(newpath);
+    }
+
+    removeVideo(oldpath) {
+        if( this.videos.includes(oldpath) )
+            this.videos=this.videos.filter(item=>item!==oldpath);
     }
     
 }
