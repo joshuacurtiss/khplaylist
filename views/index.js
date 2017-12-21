@@ -771,12 +771,20 @@ function playlistItemKeyDown(e){
         // If text is fully selected and hit "f", toggle fullscreen mode.
         toggleFullscreen();
         return false;
-    } else if( (e.key=="Backspace" || e.key=="Delete") && val.length==0 && ! $li.is(":last-child") && $li.parent().find("input:placeholder-shown").length>1 ) {
+    } else if( (e.key=="Backspace" || e.key=="Delete") && val.length==0 && $li.parent().find("input:placeholder-shown").length>1 ) {
         // If hit backspace or delete key and field is already empty, delete the row.
-        // BUT ONLY IF: You're not the last row, and it isn't the last empty row. 
-        // We find empty input boxes using the :placeholder-shown selector, nifty trick.
-        handleDeleteRow();
-        if( e.key=="Backspace" ) prevVideo(); // Backspace will roll up to next video, otherwise will move onto the field filling the deleted row.
+        // BUT ONLY IF it isn't the last empty row. Find empty input boxes using :placeholder-shown selector, nifty trick.
+        if( $li.is(":last-child") ) {
+            // If it's the last item, only delete if prev one is also empty. We always want the last playlist item to be blank.
+            var $prev=$li.prev();
+            if( $prev && $prev.find("input").val().length==0 ) {
+                handleDeleteRow();
+                selectPlaylistItem($prev)
+            }
+        } else {
+            handleDeleteRow();
+            if( e.key=="Backspace" ) prevVideo(); // Backspace will roll up to next video, otherwise will move onto the field filling the deleted row.
+        }
         return false;
     }
 }
@@ -789,6 +797,8 @@ function playlistItemKeyUp(e){
         prevVideo();
         return false;
     } else if( e.key=="ArrowDown" || e.key=="Enter" ) {
+        // If hitting enter on the last entry, create a new playlist item
+        if( e.key=="Enter" && $li.is(":last-child") ) appendPlaylistRow();
         // Arrow down to next video
         nextVideo();
         return false;
@@ -798,16 +808,13 @@ function playlistItemKeyUp(e){
     } else if( val.length>0 && $li.is(":last-child") ) {
         // If you're typing and this is the last row, add another empty row at end.
         appendPlaylistRow($li);
-    } else if( val.length==0 && ! $li.is(":last-child") && $li.next().find("input").val().length==0 ) {
-        // Delete nearby empty rows
-        $li.next().remove();
     }
     if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 )
         $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new");
 }
 
 function parsePlaylistItem(fld) {
-    var txt=$(fld).val();
+    var txt=$(fld).val().trim();
     var item=null;
     var className="valid";
     var tagText="";
@@ -877,14 +884,14 @@ function parsePlaylistItem(fld) {
                 });
             }
         }
-        else if( $.trim(txt).length ) {
+        else if( txt.length ) {
             className="parseErr";
             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                 .prop("videos",[])
                 .prop("data-videos-text",txt)
                 .find(".tag").text(tagText);
         }
-    } else if( $.trim(txt).length==0 ) {
+    } else if( txt.length==0 ) {
         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
             .prop("videos",[])
             .prop("data-videos-text","")
