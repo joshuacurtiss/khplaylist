@@ -786,6 +786,9 @@ function playlistItemKeyDown(e){
             if( e.key=="Backspace" ) prevVideo(); // Backspace will roll up to next video, otherwise will move onto the field filling the deleted row.
         }
         return false;
+    } else if( e.key=="Enter" ) {
+        // Let the keyup handler take care of it.
+        return false;
     }
 }
 function playlistItemKeyUp(e){
