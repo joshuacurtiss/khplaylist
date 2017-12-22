@@ -67,11 +67,23 @@ $(document).ready(()=>{
             console.log(`${newpath} added.`);
             rvu.addVideo(newpath);
             svu.addVideo(newpath);
+            // Find playlist items in err state and re-parse.
+            $("#playlist li.mediaErr").each(function(){
+                $(this).prop("data-videos-text","");
+                parsePlaylistItem($(this).find("input"));
+            });
         })
         .on('unlink', oldpath => {
             console.log(`${oldpath} removed.`);
             rvu.removeVideo(oldpath);
             svu.removeVideo(oldpath);
+            // Find playlist items that use this video and re-parse.
+            $("#playlist li.valid").each(function(){
+                if( $(this).prop("videos").findIndex(vid=>vid.path==oldpath) >= 0 ) {
+                    $(this).prop("data-videos-text","");
+                    parsePlaylistItem($(this).find("input"));
+                }
+            });
         });
   
     // Wire up listeners
