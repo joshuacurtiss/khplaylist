@@ -81,6 +81,7 @@ $(document).ready(()=>{
     videoController.video.addEventListener("timeupdate", updateVideoUI, false);
     videoController.video.addEventListener("click", toggleVideo, false);
     $(".fullscreenToggle").click(toggleFullscreen);
+    $(".secondButton").click(toggleSecondDisplay);
     $(".settingsButton").click(handleSettings);
     $(".powerButton").click(quit);
     $(".vidbackward").click(prevVideo);
@@ -299,7 +300,14 @@ $(document).ready(()=>{
     console.log("Initialized!");
 });
 
+function toggleSecondDisplay() {
+    settings.secondDisplay = ! $(".secondButton").hasClass("selected");
+    checkSecondDisplay();
+}
+
 function checkSecondDisplay() {
+    if( settings.secondDisplay ) $(".secondButton").addClass("selected");
+    else $(".secondButton").removeClass("selected")
     if( settings.secondDisplay && videoController.secondWin===undefined ) {
         videoController.secondWin=main.createSecondWin();
     } else if( settings.secondDisplay==false && videoController.secondWin!==undefined ) {

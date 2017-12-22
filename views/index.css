@@ -359,9 +359,11 @@ body.playlistMode #videoControls {
     cursor: pointer;
 }
 
-.togglebutton:hover {
-    background-color: #444;
-}
+.togglebutton:hover {background-color: #444;}
+.togglebutton:active {background-color: #555;}
+.togglebutton.selected {background-color: #488dd8;}
+.togglebutton.selected:hover {background-color: #5d99d8;}
+.togglebutton.selected:active {background-color: #64a2e4;}
 
 /* Playlist Dropdown Menu */
 #dropdown li {
