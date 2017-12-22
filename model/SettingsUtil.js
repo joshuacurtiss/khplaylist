@@ -32,7 +32,9 @@ class SettingsUtil {
 
 SettingsUtil.DEFAULTS={
     mode: "playlistMode",
-    secondDisplay: false
+    secondDisplay: false,
+    downloadsPath: true,
+    extraPath: ""
 };
 
 module.exports=SettingsUtil;

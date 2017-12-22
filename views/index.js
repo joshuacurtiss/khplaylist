@@ -33,7 +33,7 @@ const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
 const FF_SECS=15;
 const RW_SECS=5;
 var videoController, $curTime, $chname;
-var videopaths=[electron.remote.app.getPath('videos')];
+var videopaths=[];
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var settings=new SettingsUtil(APPDATADIR+"state.json");
 var videoAppController, cachemgr, videopathWatcher, svu, rvu, emu;
@@ -56,9 +56,8 @@ $(document).ready(()=>{
         internalCacheDir: APPDATADIR+"webvttcache",
         patchDir: path.join(main.dir,"data","webvttpatches")
     });
+    indexVideos();
     emu=new ExternalMediaUtil(videoAppController);
-    svu=new ScriptureVideoUtil(videopaths, videoAppController, cachemgr);
-    rvu=new ReferenceVideoUtil(videopaths, videoAppController, cachemgr);
     cachemgr.purgeOldWebvttFiles(svu.videos);
     videopathWatcher=chokidar.watch(videopaths, {awaitWriteFinish:true, ignorePermissionErrors:true, ignoreInitial:true});
     videopathWatcher
@@ -111,6 +110,8 @@ $(document).ready(()=>{
     $("#playlistSave").click(savePlaylistWithFeedback);
     $("#playlistExport").click(handlePlaylistExport);
     $("#playlistImport").click(handlePlaylistImport);
+    $("#extraPathBrowse").click(handleSettingsExtraPathBrowse);
+    $("#extraPathClear").click(handleExtraPathClear);
 
     // Set External Media filetypes
     var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
@@ -132,7 +133,7 @@ $(document).ready(()=>{
     // Batch Entry Dialog
     settingsDialog=$( "#settingsDialog" ).dialog({
         autoOpen: false,
-        height: $(window).height() * 0.4,
+        height: $(window).height() * 0.5,
         width: $(window).width() * 0.4,
         modal: true,
         buttons: [
@@ -152,6 +153,8 @@ $(document).ready(()=>{
         open: function() {
             $("#mode").val(settings.mode);
             $("#secondDisplay").prop("checked",settings.secondDisplay);
+            $("#downloadsPath").prop("checked",settings.downloadsPath);
+            $("#extraPath").val(settings.extraPath);
         }
     });
     function handleSettings(){
@@ -160,9 +163,26 @@ $(document).ready(()=>{
     function handleSettingsSave(){
         settings.mode=$("#mode").val();
         settings.secondDisplay=$("#secondDisplay").prop("checked");
+        settings.downloadsPath=$("#downloadsPath").prop("checked");
+        settings.extraPath=$("#extraPath").val();
         settings.save();
         settingsDialog.dialog("close");
-        checkSecondDisplay();        
+        indexVideos();
+        checkSecondDisplay();
+        // TODO: The videopathWatcher should be updated accordingly. 
+    }
+    function handleSettingsExtraPathBrowse(){
+        electron.remote.dialog.showOpenDialog(main.win,{
+            title: "Select Directory",
+            buttonLabel: "Select",
+            message: "Please choose a directory.",
+            properties: ['openDirectory','createDirectory']
+        }, function(dir){
+            $("#extraPath").val(dir?dir[0]:"");
+        });
+    }
+    function handleExtraPathClear(){
+        $("#extraPath").val("");
     }
   
     // Batch Entry Dialog
@@ -311,6 +331,21 @@ $(document).ready(()=>{
     // Done!
     console.log("Initialized!");
 });
+
+function indexVideos() {
+    // Accumulate video paths
+    videopaths=[electron.remote.app.getPath('videos')];
+    if( settings.downloadsPath ) videopaths.push(electron.remote.app.getPath('downloads'));
+    if( settings.extraPath.length ) videopaths.push(settings.extraPath);
+    // Instantiate Scripture/Reference objects with those paths
+    svu=new ScriptureVideoUtil(videopaths, videoAppController, cachemgr);
+    rvu=new ReferenceVideoUtil(videopaths, videoAppController, cachemgr);
+    // Re-parse any erring playlist rows
+    $("#playlist li.mediaErr").each(function(){
+        $(this).prop("data-videos-text","");
+        parsePlaylistItem($(this).find("input"));
+    });
+}
 
 function toggleSecondDisplay() {
     settings.secondDisplay = ! $(".secondButton").hasClass("selected");
