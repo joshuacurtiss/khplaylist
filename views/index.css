@@ -365,6 +365,9 @@ body.playlistMode #videoControls {
 .togglebutton.selected:hover {background-color: #5d99d8;}
 .togglebutton.selected:active {background-color: #64a2e4;}
 
+/* Don't stuff be selectable */
+div {user-select: none;}
+
 /* Playlist Dropdown Menu */
 #dropdown li {
     color: #ccc;
