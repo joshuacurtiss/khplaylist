@@ -832,8 +832,8 @@ function playlistItemKeyUp(e){
         // If you're typing and this is the last row, add another empty row at end.
         appendPlaylistRow($li);
     }
-    if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 )
-        $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new");
+    if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 ) 
+        $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new").prop("data-videos-text","");
 }
 
 function parsePlaylistItem(fld) {
