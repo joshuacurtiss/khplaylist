@@ -1,6 +1,4 @@
-# Kingdom Hall Playlist #
-
-An app that helps you build a media playlist to facilitate more convenient and expedient playing of media during the meeting, particularly for ASL congregations since publication references and scriptures are played during the meeting program.
+An app that helps you build a media playlist to facilitate more convenient and expedient playing of media during the meeting, particularly for sign language congregations since publication references and scriptures are played during the meeting program.
 
 This is especially intended for congregations with Windows computers, since they cannot use SL Studio and the native JW app does not yet support playlists. 
 
@@ -16,11 +14,13 @@ Click on the playlist line and just start typing naturally. The playlist will re
 
 For instance, all of these are valid examples of how to enter scriptures:
 
-`Gen 3:15`  
-`Genesis 3:15`  
-`John 1:1; 17:3`  
-`Matt 24:14, 36-39`  
-`John 17:3; Rev 24:14`
+```
+Gen 3:15
+Genesis 3:15
+John 1:1; 17:3
+Matt 24:14, 36-39
+John 17:3; Rev 24:14
+```
 
 Publications can feel a little more tricky but the playlist does a decent job at finding what you're asking for, and it will always work with formal publication reference formatting. For instance: 
 
@@ -35,16 +35,3 @@ Publications can feel a little more tricky but the playlist does a decent job at
 `Sing to Jehovah 3` will also find `sn 3`. 
 
 These are just some examples demonstrating the flexibility of the playlist.
-
-## How do I compile it myself? ##
-
-The application runs on [Node.js](https://nodejs.org) and [Electron](https://electronjs.org), and is compatible with Mac and Windows. To compile it, you will need Node.js installed.
-
-After you download or clone the source, install all dependencies and run the build script. It is named `build-installer-win` for Windows and `build-installer-mac` for Mac. For instance, to build for Windows:
-
-```
-npm install
-npm run build-installer-win
-```
-
-It will place a compiled executable for your system architecture into a directory in the `builds` directory, as well as an installer file (Setup.exe for Windows, `dmg` file for Mac). 
