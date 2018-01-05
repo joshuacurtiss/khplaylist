@@ -52,7 +52,6 @@ $(document).ready(()=>{
     // Set up video app controller and index of video and webvtt files
     videoAppController=new WebVttWrapperController({ffprobe:path.join(main.dir,"bin","ffprobe"+(os.type()=="Windows_NT"?".exe":""))});
     indexVideos();
-    emu=new ExternalMediaUtil(videoAppController);
     videopathWatcher=chokidar.watch(videopaths, {awaitWriteFinish:true, ignorePermissionErrors:true, ignoreInitial:true});
     videopathWatcher
         .on('ready', ()=>console.log("Watcher is ready, looking for changes in directories."))
@@ -60,6 +59,7 @@ $(document).ready(()=>{
             console.log(`${newpath} added.`);
             rvu.addVideo(newpath);
             svu.addVideo(newpath);
+            emu.addMedia(newpath);
             // Find playlist items in err state and re-parse.
             $("#playlist li.mediaErr").each(function(){
                 $(this).prop("data-videos-text","");
@@ -70,6 +70,7 @@ $(document).ready(()=>{
             console.log(`${oldpath} removed.`);
             rvu.removeVideo(oldpath);
             svu.removeVideo(oldpath);
+            emu.removeMedia(oldpath);
             // Find playlist items that use this video and re-parse.
             $("#playlist li.valid").each(function(){
                 if( $(this).prop("videos").findIndex(vid=>vid.path==oldpath) >= 0 ) {
@@ -110,9 +111,7 @@ $(document).ready(()=>{
     $("#clearCache").click(handleClearCache);
 
     // Set External Media filetypes
-    var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
-    acceptlist=acceptarray.map(ext=>"."+ext).join();
-    $("#browseExternalMedia").attr("accept",acceptlist);
+    $("#browseExternalMedia").attr("accept",ExternalMedia.ALLEXT.join());
 
     // Dialogs
     $(".dialog form").submit(false);
@@ -360,9 +359,10 @@ function indexVideos() {
         internalCacheDir: APPDATADIR+"webvttcache",
         patchDir: path.join(main.dir,"data","webvttpatches")
     });
-    // Instantiate Scripture/Reference objects with those paths
+    // Instantiate objects with those paths
     svu=new ScriptureVideoUtil(videopaths, videoAppController, cachemgr);
     rvu=new ReferenceVideoUtil(videopaths, videoAppController, cachemgr);
+    emu=new ExternalMediaUtil(videopaths, videoAppController);
     // Purge old webvtt files
     cachemgr.purgeOldWebvttFiles(svu.videos);
     // Re-parse any erring playlist rows
@@ -468,14 +468,13 @@ function handlePlaylistExport() {
         // Find all valid media files in the ~/data/media directory and add them
         var pathwalk=[];
         var filelen=0;
-        var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
         try {
             pathwalk=fs.walkSync(APPDATADIR+"media");
         } catch(err) {}
         for( var p of pathwalk ) {
             f=path.basename(p);
             ext=path.extname(f).toLowerCase();
-            if( exts.indexOf(ext)>=0 ) {
+            if( ExternalMedia.ALLEXT.indexOf(ext)>=0 ) {
                 // Keep track of how many bytes need to be added
                 var stat=fs.statSync(p);
                 filelen+=stat.size;
@@ -513,12 +512,11 @@ function handlePlaylistImport() {
         var zipstats=fs.statSync(filenames[0]);
         // Delete existing media
         var pathwalk=[];
-        var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
         try {
             pathwalk=fs.walkSync(APPDATADIR+"media");
         } catch(err) {}
         for( var p of pathwalk ) {
-            if( exts.indexOf(path.extname(p).toLowerCase())>=0 ) fs.removeSync(p);
+            if( ExternalMedia.ALLEXT.indexOf(path.extname(p).toLowerCase())>=0 ) fs.removeSync(p);
         }
         // Unzip the archive
         yauzl.open(filenames[0], {lazyEntries: true}, function(err, zipfile) {
@@ -591,13 +589,12 @@ function savePlaylistWithFeedback() {
 
 function purgeMedia() {
     var pathwalk=[];
-    var exts=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS).map(item=>"."+item);
     console.log("Purging media...");
     try {
         fs.walk(APPDATADIR+"media")
             .on('data', item=>{
                 // Collect paths of all valid files (with the right extensions)
-                if( exts.includes(path.extname(item.path).toLowerCase()) ) pathwalk.push(item.path);
+                if( ExternalMedia.ALLEXT.includes(path.extname(item.path).toLowerCase()) ) pathwalk.push(item.path);
             })
             .on('end', ()=>{
                 // Collect all paths of ExternalMedia objects in the playlist

@@ -7,10 +7,11 @@ class ExternalMedia {
     constructor(path,webvtt) {
         this.webvtt=webvtt;
         this.path=path;
+        this.pathIsIndexed=false;
         return this;
     }
 
-    get displayName() {return this.path}
+    get displayName() {return this.pathIsIndexed?path.basename(this.path):this.path}
 
     get path() {return this._path}
     set path(path) {
@@ -26,10 +27,10 @@ class ExternalMedia {
     }
 
     get filename() {return path.basename(this.path)}
-    get extension() {return path.extname(this.path).toLowerCase().slice(1)}
+    get extension() {return path.extname(this.path).toLowerCase()}
 
-    isImage() {return (ExternalMedia.IMAGE_EXTENSIONS.indexOf(this.extension)>=0)}
-    isVideo() {return (ExternalMedia.VIDEO_EXTENSIONS.indexOf(this.extension)>=0)}
+    isImage() {return (ExternalMedia.IMAGEEXT.indexOf(this.extension)>=0)}
+    isVideo() {return (ExternalMedia.VIDEOEXT.indexOf(this.extension)>=0)}
     valid() {return this.path && this.path.length && fs.existsSync(this.path)}
 
     createList() {
@@ -59,7 +60,8 @@ class ExternalMedia {
 }
 
 ExternalMedia.IMAGE_DURATION=6;
-ExternalMedia.IMAGE_EXTENSIONS=["png","jpg","gif","jpeg","bmp"];
-ExternalMedia.VIDEO_EXTENSIONS=["mov","mp4","m4v","avi","webm"];
+ExternalMedia.IMAGEEXT=[".png",".jpg",".gif",".jpeg",".bmp"];
+ExternalMedia.VIDEOEXT=[".mov",".mp4",".m4v",".avi",".webm"];
+ExternalMedia.ALLEXT=ExternalMedia.IMAGEEXT.concat(ExternalMedia.VIDEOEXT);
 
 module.exports=ExternalMedia;
