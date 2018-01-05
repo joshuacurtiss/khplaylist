@@ -335,13 +335,17 @@ $(document).ready(()=>{
         revert: true
     });
 
+    // Display version
+    $(".version").html(main.version);
+    $(".titleBanner img").attr("title",main.version);
+
     // Remove splash screen and finish up
     setTimeout(function(){
         $('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode);
         selectFirstItem();
         checkSecondDisplay();
     },1500);
-    
+
     // Done!
     console.log("Initialized!");
 });

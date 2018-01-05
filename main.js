@@ -33,6 +33,7 @@ app.on("ready", () => {
 });
 
 exports.dir=__dirname;
+exports.version="v"+app.getVersion();
 
 exports.createSecondWin=()=>{
     if( secondaryDisplay ) {
