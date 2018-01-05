@@ -34,7 +34,8 @@ SettingsUtil.DEFAULTS={
     mode: "playlistMode",
     secondDisplay: false,
     downloadsPath: true,
-    extraPath: ""
+    extraPath: "",
+    cacheMode: "internal"
 };
 
 module.exports=SettingsUtil;

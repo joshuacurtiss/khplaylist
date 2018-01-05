@@ -398,6 +398,17 @@ div {user-select: none;}
 
 .dialog {
     display:none;
+    font-size: 2vh;
+}
+.dialog h2 {
+    border-bottom: 1px solid black;
+    font-size: 2.2vh;
+}
+#settingsDialog input[type=text] {
+    width: 22vw;
+}
+#cacheModeDesc {
+    font-size: 0.75em;
 }
 #batchEntryDialog form {
     width: 50%;

@@ -50,6 +50,7 @@
     </div>
     <div id="settingsDialog" class="dialog" title="Settings">
         <form>
+            <h2>Video Playback</h2>
             <p>
                 Start-up mode:
                 <select name="mode" id="mode">
@@ -61,6 +62,7 @@
                 <input type="checkbox" name="secondDisplay" id="secondDisplay" />
                 <label for="secondDisplay">Play video on second display</label>
             </p>
+            <h2>Video Paths</h2>
             <p>
                 <input type="checkbox" name="downloadsPath" id="downloadsPath" />
                 <label for="downloadsPath">Use videos in the "Downloads" directory</label>
@@ -70,6 +72,12 @@
                 <input type="text" id="extraPath" />
                 <button type="button" id="extraPathBrowse">Browse</button>
                 <button type="button" id="extraPathClear">Clear</button>
+            </p>
+            <h2>Video Caching</h2>
+            <p>
+                <select name="cacheMode" id="cacheMode"></select>
+                <button id="clearCache" class="btn btn-default" type="button">Clear Cache</button>
+                <div id="cacheModeDesc"></div>
             </p>
         </form>
         <ul></ul>

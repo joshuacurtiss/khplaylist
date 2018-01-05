@@ -51,14 +51,8 @@ $(document).ready(()=>{
 
     // Set up video app controller and index of video and webvtt files
     videoAppController=new WebVttWrapperController({ffprobe:path.join(main.dir,"bin","ffprobe"+(os.type()=="Windows_NT"?".exe":""))});
-    cachemgr=new WebvttCacheManager({
-        cacheMode: WebvttCacheManager.CACHEMODES.INTERNAL,
-        internalCacheDir: APPDATADIR+"webvttcache",
-        patchDir: path.join(main.dir,"data","webvttpatches")
-    });
     indexVideos();
     emu=new ExternalMediaUtil(videoAppController);
-    cachemgr.purgeOldWebvttFiles(svu.videos);
     videopathWatcher=chokidar.watch(videopaths, {awaitWriteFinish:true, ignorePermissionErrors:true, ignoreInitial:true});
     videopathWatcher
         .on('ready', ()=>console.log("Watcher is ready, looking for changes in directories."))
@@ -112,6 +106,8 @@ $(document).ready(()=>{
     $("#playlistImport").click(handlePlaylistImport);
     $("#extraPathBrowse").click(handleSettingsExtraPathBrowse);
     $("#extraPathClear").click(handleExtraPathClear);
+    $("#cacheMode").change(handleCacheMode);
+    $("#clearCache").click(handleClearCache);
 
     // Set External Media filetypes
     var acceptarray=ExternalMedia.IMAGE_EXTENSIONS.concat(ExternalMedia.VIDEO_EXTENSIONS);
@@ -133,7 +129,7 @@ $(document).ready(()=>{
     // Batch Entry Dialog
     settingsDialog=$( "#settingsDialog" ).dialog({
         autoOpen: false,
-        height: $(window).height() * 0.5,
+        height: $(window).height() * 0.8,
         width: $(window).width() * 0.4,
         modal: true,
         buttons: [
@@ -155,6 +151,12 @@ $(document).ready(()=>{
             $("#secondDisplay").prop("checked",settings.secondDisplay);
             $("#downloadsPath").prop("checked",settings.downloadsPath);
             $("#extraPath").val(settings.extraPath);
+            var cacheModeHtml="";
+            Object.values(WebvttCacheManager.CACHEMODES).forEach(cachemode=>cacheModeHtml+=`<option value="${cachemode.id}">${cachemode.name}</option>`)
+            $("#cacheMode")
+                .html(cacheModeHtml)
+                .val(settings.cacheMode);
+            handleCacheMode();
         }
     });
     function handleSettings(){
@@ -165,6 +167,7 @@ $(document).ready(()=>{
         settings.secondDisplay=$("#secondDisplay").prop("checked");
         settings.downloadsPath=$("#downloadsPath").prop("checked");
         settings.extraPath=$("#extraPath").val();
+        settings.cacheMode=$("#cacheMode").val();
         settings.save();
         settingsDialog.dialog("close");
         indexVideos();
@@ -183,6 +186,18 @@ $(document).ready(()=>{
     }
     function handleExtraPathClear(){
         $("#extraPath").val("");
+    }
+    function handleCacheMode(){
+        var id=$("#cacheMode").val();
+        var cachemode=Object.values(WebvttCacheManager.CACHEMODES).find(cm=>cm.id==id);
+        $("#cacheModeDesc").html(cachemode.desc);
+        $("#clearCache").attr("disabled",id!=settings.cacheMode || id==WebvttCacheManager.CACHEMODES.NONE.id);
+    }
+    function handleClearCache() {
+        var cacheModeId=$("#cacheMode").val();
+        if( cacheModeId!=WebvttCacheManager.CACHEMODES.NONE.id && confirm(`Delete ${cacheModeId} cache?`) ) {
+            cachemgr.purgeWebvttFiles();
+        }
     }
   
     // Batch Entry Dialog
@@ -337,9 +352,19 @@ function indexVideos() {
     videopaths=[electron.remote.app.getPath('videos')];
     if( settings.downloadsPath ) videopaths.push(electron.remote.app.getPath('downloads'));
     if( settings.extraPath.length ) videopaths.push(settings.extraPath);
+    // Initialize Webvtt Cache Manager
+    cachemgr=new WebvttCacheManager({
+        // Pass in the video paths as webvttpaths if cache mode is "external".
+        webvttpaths: settings.cacheMode===WebvttCacheManager.CACHEMODES.EXTERNAL.id?videopaths:[],
+        cacheMode: settings.cacheMode,
+        internalCacheDir: APPDATADIR+"webvttcache",
+        patchDir: path.join(main.dir,"data","webvttpatches")
+    });
     // Instantiate Scripture/Reference objects with those paths
     svu=new ScriptureVideoUtil(videopaths, videoAppController, cachemgr);
     rvu=new ReferenceVideoUtil(videopaths, videoAppController, cachemgr);
+    // Purge old webvtt files
+    cachemgr.purgeOldWebvttFiles(svu.videos);
     // Re-parse any erring playlist rows
     $("#playlist li.mediaErr").each(function(){
         $(this).prop("data-videos-text","");
