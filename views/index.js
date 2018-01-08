@@ -586,7 +586,9 @@ function loadPlaylistRow($li,item) {
     // Immediately add a row after this one, since we're using this one.
     appendPlaylistRow($li);
     var $input=$li.find("input");
-    if( item.source=="text" ) {
+    if( item.source===undefined ) item.source="text";
+    if( item.text===undefined ) item.text="";
+    if( item.source=="text" || ! Array.isArray(item[item.source]) ) {
         // Just load the text and parse fresh.
         $input.val(item.text);
         parsePlaylistItem($input);
@@ -595,37 +597,39 @@ function loadPlaylistRow($li,item) {
         var videos=new Array(item[item.source]);
         var className="valid";
         if( item[item.source].length==0 ) className="parseErr";
-        item[item.source].forEach((itemObj,itemIndex)=>{
-            // Try parsing all types to figure out what kind of object it is.
-            var handlers={"Scripture":svu,"Reference":rvu,"ExternalMedia":emu};
-            var scriptures=su.parseScriptures(itemObj.source);
-            var references=ru.parseReferences(itemObj.source);
-            var media=emu.parseExternalMedia(itemObj.source);
-            var objs=scriptures.concat(references).concat(media);
-            // Only proceed if an object was found out of the source info.
-            if( objs.length ) {
-                // Get the right handler based on the type of instantiated object
-                var handler=handlers[objs[0].constructor.name];
-                // Ask the handler to make the video object for this object.
-                handler.createVideo(objs[0],(err,thisvid)=>{
-                    // Immediately overwrite the calculated cue list with the saved cue list.
-                    thisvid.list=itemObj.list;
-                    // Handle media errs (No cues generated)
-                    if( thisvid.isVideo() && thisvid.list.length==0 ) className="mediaErr";
-                    // Add to list of videos
-                    videos[itemIndex]=thisvid;
-                    // Once we've processed all videos, update the playlist row UI.
-                    if( videos.every(v=>v!==null) ) {
-                        console.log(videos);
-                        $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
-                        .prop("videos",videos)
-                        .prop("data-source",item.source)
-                        .prop("data-videos-text",item.text)
-                        .find("input").val(item.text).end();                                        
-                    }
-                });
-            }
-        });
+        if( item[item.source] && Array.isArray(item[item.source]) ) {
+            item[item.source].forEach((itemObj,itemIndex)=>{
+                // Try parsing all types to figure out what kind of object it is.
+                var handlers={"Scripture":svu,"Reference":rvu,"ExternalMedia":emu};
+                var scriptures=su.parseScriptures(itemObj.source);
+                var references=ru.parseReferences(itemObj.source);
+                var media=emu.parseExternalMedia(itemObj.source);
+                var objs=scriptures.concat(references).concat(media);
+                // Only proceed if an object was found out of the source info.
+                if( objs.length ) {
+                    // Get the right handler based on the type of instantiated object
+                    var handler=handlers[objs[0].constructor.name];
+                    // Ask the handler to make the video object for this object.
+                    handler.createVideo(objs[0],(err,thisvid)=>{
+                        // Immediately overwrite the calculated cue list with the saved cue list.
+                        thisvid.list=itemObj.list;
+                        // Handle media errs (No cues generated)
+                        if( thisvid.isVideo() && thisvid.list.length==0 ) className="mediaErr";
+                        // Add to list of videos
+                        videos[itemIndex]=thisvid;
+                        // Once we've processed all videos, update the playlist row UI.
+                        if( videos.every(v=>v!==null) ) {
+                            console.log(videos);
+                            $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+                            .prop("videos",videos)
+                            .prop("data-source",item.source)
+                            .prop("data-videos-text",item.text)
+                            .find("input").val(item.text).end();                                        
+                        }
+                    });
+                }
+            });
+        }
     }
 }
 function savePlaylist() {
