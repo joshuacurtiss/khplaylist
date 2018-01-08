@@ -597,7 +597,7 @@ function loadPlaylistRow($li,item) {
         var videos=new Array(item[item.source]);
         var className="valid";
         if( item[item.source].length==0 ) className="parseErr";
-        if( item[item.source] && Array.isArray(item[item.source]) ) {
+        if( item[item.source] ) {
             item[item.source].forEach((itemObj,itemIndex)=>{
                 // Try parsing all types to figure out what kind of object it is.
                 var handlers={"Scripture":svu,"Reference":rvu,"ExternalMedia":emu};
