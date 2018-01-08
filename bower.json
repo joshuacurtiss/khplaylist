@@ -18,7 +18,7 @@
   "dependencies": {
     "webvtt": "joshuacurtiss/webvtt#v1.2.2",
     "scripture": "joshuacurtiss/scripture#716b39e3f8975fc967edcc1a10b359299963545a",
-    "theoreference": "joshuacurtiss/theoreference#1861464edc8bd5e3594c36e983741f1830b46780",
+    "theoreference": "joshuacurtiss/theoreference#a27bdd01bd3a3c228437ae67e64f38cbdde4be92",
     "font-awesome": "^4.7.0",
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",
