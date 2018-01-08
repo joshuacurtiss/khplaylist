@@ -1,21 +1,28 @@
 const path=require("path");
 const fs=require("fs-extra");
+const Cue=require("./Cue");
 const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 
 class ExternalMedia {
 
     constructor(path,webvtt) {
+        this.pathIsIndexed=false;
+        this.displayName="";
         this.webvtt=webvtt;
         this.path=path;
-        this.pathIsIndexed=false;
         return this;
     }
 
-    get displayName() {return this.pathIsIndexed?path.basename(this.path):this.path}
+    get pathIsIndexed() {return this._pathIsIndexed}
+    set pathIsIndexed(newvalue) {
+        this._pathIsIndexed=newvalue;
+        this.displayName=this.pathIsIndexed?path.basename(this.path):this.path;
+    }
 
     get path() {return this._path}
     set path(path) {
         this._path=path;
+        this.displayName=this.pathIsIndexed?path.basename(this.path):this.path;
         this.createList();
     }
 
@@ -26,6 +33,7 @@ class ExternalMedia {
         this.createList();
     }
 
+    get source() {return this}
     get filename() {return path.basename(this.path)}
     get extension() {return path.extname(this.path).toLowerCase()}
 
@@ -40,9 +48,10 @@ class ExternalMedia {
                 if( list.length && list[list.length-1].end==cue.start ) {
                     var last=list[list.length-1];
                     last.end=cue.end;
+                    last.max=cue.end;
                     last.content=last.content.split("-")[0]+"-"+cue.content;
                 } else {
-                    list.push({start:cue.start,end:cue.end,content:cue.content});
+                    list.push(new Cue(cue.start,cue.end,cue.content));
                 }
             });
         }

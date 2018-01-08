@@ -1,16 +1,17 @@
+const Cue=require("./Cue");
 const Scripture=require("../bower_components/scripture/Scripture");
 const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 
 class ScriptureVideo {
 
     constructor(scripture,path,webvtt) {
+        this.displayName="";
         this.path=path;
         this.webvtt=webvtt;
         this.scripture=scripture; // Must be set after webvtt is set.
+        this.pathIsIndexed=true;
         return this;
     }
-
-    get displayName() {return this.scripture.toString()}
 
     get webvtt() {return this._webvtt}
     set webvtt(webvtt) {
@@ -21,6 +22,7 @@ class ScriptureVideo {
     get scripture() {return this._scripture}
     set scripture(scripture) {
         this._scripture=scripture;
+        this.displayName=this.source.toString();
         var list=[];
         if( scripture.valid() ) {
             var cue;
@@ -30,15 +32,20 @@ class ScriptureVideo {
                     if( list.length && list[list.length-1].end==cue.start ) {
                         var last=list[list.length-1];
                         last.end=cue.end;
+                        last.max=cue.end;
                         last.content=last.content.split("-")[0]+"-"+cue.content.split(":")[1];
                     } else {
-                        list.push({start:cue.start,end:cue.end,content:cue.content});
+                        list.push(new Cue(cue.start,cue.end,cue.content));
                     }
                 }
             }
         }
         this.list=list;
     }
+
+    get source() {return this.scripture}
+    get filename() {return path.basename(this.path)}
+    get extension() {return path.extname(this.path).toLowerCase()}
 
     isImage() {return false}
     isVideo() {return true}

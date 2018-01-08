@@ -550,6 +550,20 @@ function handlePlaylistImport() {
     });
 }
 
+/*
+ *  Playlist Information:
+ * 
+ *  "source": "text" to literally just reparse the raw text.
+ *            "media" to rely on specific media definitions.
+ * 
+ *  A "media" array will have objects with the keys:
+ * 
+ *     "displayName": What text appears in the field
+ *     "source": Text to parse the scripture/reference/externalmedia, to find the right file.
+ *     "list": Array of cues, which will overwrite the generated list on instantiation.
+ * 
+ */
+
 function loadPlaylist() {
     var playlist=[];
     try {
@@ -559,24 +573,82 @@ function loadPlaylist() {
     }
     $("#playlist li").remove();
     appendPlaylistRow();
+    // Loop over the saved playlist
     for( var item of playlist ) {
+        // For each item, grab the last playlist row and add the video to it.
+        // This has async calculations so this way is async-safe.
         var $li=$("#playlist li:last");
-        var $input=$li.find("input");
-        $input.val(item.text);
-        parsePlaylistItem($input);
-        appendPlaylistRow($li);
+        loadPlaylistRow($li,item);
     }
-    purgeMedia();
 }
 
+function loadPlaylistRow($li,item) {
+    // Immediately add a row after this one, since we're using this one.
+    appendPlaylistRow($li);
+    var $input=$li.find("input");
+    if( item.source=="text" ) {
+        // Just load the text and parse fresh.
+        $input.val(item.text);
+        parsePlaylistItem($input);
+    } else {
+        // Load exact specs
+        var videos=new Array(item[item.source]);
+        var className="valid";
+        if( item[item.source].length==0 ) className="parseErr";
+        item[item.source].forEach((itemObj,itemIndex)=>{
+            // Try parsing all types to figure out what kind of object it is.
+            var handlers={"Scripture":svu,"Reference":rvu,"ExternalMedia":emu};
+            var scriptures=su.parseScriptures(itemObj.source);
+            var references=ru.parseReferences(itemObj.source);
+            var media=emu.parseExternalMedia(itemObj.source);
+            var objs=scriptures.concat(references).concat(media);
+            // Only proceed if an object was found out of the source info.
+            if( objs.length ) {
+                // Get the right handler based on the type of instantiated object
+                var handler=handlers[objs[0].constructor.name];
+                // Ask the handler to make the video object for this object.
+                handler.createVideo(objs[0],(err,thisvid)=>{
+                    // Immediately overwrite the calculated cue list with the saved cue list.
+                    thisvid.list=itemObj.list;
+                    // Handle media errs (No cues generated)
+                    if( thisvid.isVideo() && thisvid.list.length==0 ) className="mediaErr";
+                    // Add to list of videos
+                    videos[itemIndex]=thisvid;
+                    // Once we've processed all videos, update the playlist row UI.
+                    if( videos.every(v=>v!==null) ) {
+                        console.log(videos);
+                        $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
+                        .prop("videos",videos)
+                        .prop("data-source",item.source)
+                        .prop("data-videos-text",item.text)
+                        .find("input").val(item.text).end();                                        
+                    }
+                });
+            }
+        });
+    }
+}
 function savePlaylist() {
     var list=[];
+    // Loop over every playlist item
     $("#playlist li").each((index,el)=>{
-        var txt=$(el).find("input").val();
-        if(txt.length) {
-            list.push({
-                "text": txt
-            });
+        $li=$(el);
+        var txt=$li.find("input").val();
+        var source=$li.prop("data-source");
+        // Only save if it has content
+        if( txt.length ) {
+            var obj={"source": source, "text": txt};
+            // Only output "media" info if it is being used
+            if( source=="media" ) {
+                obj[source]=$li.prop("videos").map(video=>{
+                    return {
+                        "displayName": video.displayName,
+                        "source": video.source.toString(),
+                        "list": video.list
+                    }
+                });
+            }
+            list.push(obj);
         }
     });
     fs.writeJsonSync(APPDATADIR+"playlist.json",list);
@@ -961,6 +1033,7 @@ function parsePlaylistItem(fld) {
                         // Set all data to the playlist item.
                         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                             .prop("videos",videos)
+                            .prop("data-source","text")
                             .prop("data-videos-text",order.join("; "))
                             .find(".tag").text(tagText).attr("title",tagHint).end()
                             .find("input").val(order.join("; ")).end();
@@ -972,12 +1045,14 @@ function parsePlaylistItem(fld) {
             className="parseErr";
             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                 .prop("videos",[])
+                .prop("data-source","text")
                 .prop("data-videos-text",txt)
                 .find(".tag").text(tagText);
         }
     } else if( txt.length==0 ) {
         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
             .prop("videos",[])
+            .prop("data-source","text")
             .prop("data-videos-text","")
             .find(".tag").text(tagText);
     }

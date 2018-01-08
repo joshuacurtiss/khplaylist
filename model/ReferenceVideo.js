@@ -1,3 +1,4 @@
+const Cue=require("./Cue");
 const Publication=require("../bower_components/theoreference/Publication");
 const Reference=require("../bower_components/theoreference/Reference");
 const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
@@ -5,15 +6,15 @@ const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
 class ReferenceVideo {
 
     constructor(reference,path,webvtt) {
+        this.displayName="";
         this.path=path;
         this.webvtt=webvtt;
         // Pass cues to reference after webvtt is set.
         reference.availableCues=this.webvtt.data;
         this.reference=reference;
+        this.pathIsIndexed=true;
         return this;
     }
-
-    get displayName() {return this.reference.toString()}
 
     get webvtt() {return this._webvtt}
     set webvtt(webvtt) {
@@ -24,6 +25,7 @@ class ReferenceVideo {
     get reference() {return this._reference}
     set reference(reference) {
         this._reference=reference;
+        this.displayName=this.source.toString();
         if( reference.valid() ) {
             var list=[];
             var cue;
@@ -32,14 +34,19 @@ class ReferenceVideo {
                 if( list.length && list[list.length-1].end==cue.start ) {
                     var last=list[list.length-1];
                     last.end=cue.end;
+                    last.max=cue.end;
                     last.content=last.content.split("-")[0]+"-"+cue.content;
                 } else {
-                    list.push({start:cue.start,end:cue.end,content:cue.content});
+                    list.push(new Cue(cue.start,cue.end,cue.content));
                 }
             }
             this.list=list;
         }
     }
+
+    get source() {return this.reference}
+    get filename() {return path.basename(this.path)}
+    get extension() {return path.extname(this.path).toLowerCase()}
 
     isImage() {return false}
     isVideo() {return true}
