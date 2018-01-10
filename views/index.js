@@ -32,6 +32,7 @@ const APPDATADIR=electron.remote.app.getPath('userData')+path.sep;
 const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
 const FF_SECS=15;
 const RW_SECS=5;
+const STUDY_PAR_END_TRIM=1.5;
 var videoController, $curTime, $chname;
 var videopaths=[];
 var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
@@ -284,20 +285,33 @@ $(document).ready(()=>{
       }
       function handleStudyAdd(){
           studyDialog.dialog("close");
+          var $li=$("#playlist .selected");
           $("#studyDialog ul li").each((index,elem)=>{
               let txt=$(elem).text();
-              let $li=$("#playlist .selected");
               let $input=$li.find("input");
               if( $input.val().length ) {
                   prependPlaylistRow($li);
-                  selectPlaylistItem($li.prev());
-                  $li=$("#playlist .selected");
+                  $li=$li.prev();
                   $input=$li.find("input");
               }
               $input.val(txt);
-              parsePlaylistItem($input);
+              parsePlaylistItem($input,function (err,$li){
+                if( $li ) {
+                    let videos=$li.prop("videos");
+                    if( videos.length==1 ) {
+                        let video=videos[0];
+                        if( video.list.length==1 && 
+                            video.list[0].content.toLowerCase().substr(0,2)=="p " &&
+                            video.list[0].end-STUDY_PAR_END_TRIM>video.list[0].start ) {
+                            console.log(`Adjusting time for "${video.displayName}" (${video.list[0].start}-${video.list[0].end}) by ${STUDY_PAR_END_TRIM} sec.`);
+                            video.list[0].end-=STUDY_PAR_END_TRIM;
+                            $li.prop("data-source","media");
+                        } 
+                    }
+                }
+              });
               if( $li.is(':last-child') ) appendPlaylistRow($li);
-              selectPlaylistItem($li.next());
+              $li=$li.next();
           });
       }
   
@@ -973,7 +987,7 @@ function playlistItemKeyUp(e){
         $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new").prop("data-videos-text","");
 }
 
-function parsePlaylistItem(fld) {
+function parsePlaylistItem(fld,cb) {
     var txt=$(fld).val().trim();
     var item=null;
     var className="valid";
@@ -1041,6 +1055,8 @@ function parsePlaylistItem(fld) {
                             .prop("data-videos-text",order.join("; "))
                             .find(".tag").text(tagText).attr("title",tagHint).end()
                             .find("input").val(order.join("; ")).end();
+                        // Make callback
+                        if( cb ) cb(null,$li);
                     }
                 });
             }
@@ -1052,6 +1068,8 @@ function parsePlaylistItem(fld) {
                 .prop("data-source","text")
                 .prop("data-videos-text",txt)
                 .find(".tag").text(tagText);
+            // Make callback
+            if( cb ) cb("parseErr",null);
         }
     } else if( txt.length==0 ) {
         $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
@@ -1059,6 +1077,8 @@ function parsePlaylistItem(fld) {
             .prop("data-source","text")
             .prop("data-videos-text","")
             .find(".tag").text(tagText);
+        // Make callback
+        if( cb ) cb("empty",null);
     }
 }
 
