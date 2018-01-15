@@ -610,6 +610,8 @@ function loadPlaylistRow($li,item) {
         // Load exact specs
         var videos=new Array(item[item.source]);
         var className="valid";
+        var tagText="";
+        var tagHint="";
         if( item[item.source].length==0 ) className="parseErr";
         if( item[item.source] ) {
             item[item.source].forEach((itemObj,itemIndex)=>{
@@ -625,10 +627,23 @@ function loadPlaylistRow($li,item) {
                     var handler=handlers[objs[0].constructor.name];
                     // Ask the handler to make the video object for this object.
                     handler.createVideo(objs[0],(err,thisvid)=>{
-                        // Immediately overwrite the calculated cue list with the saved cue list.
-                        thisvid.list=itemObj.list;
-                        // Handle media errs (No cues generated)
-                        if( thisvid.isVideo() && thisvid.list.length==0 ) className="mediaErr";
+                        if(err) {
+                            // If an error occurs, mark the playlist row in error.
+                            console.log(err);
+                            tagText=err.tag;
+                            tagHint=err.message;
+                            className="mediaErr";
+                            thisvid=undefined;
+                        } else if( thisvid.isVideo() && thisvid.list.length==0 ) {
+                            // Handle media errs (No cues generated)
+                            tagHint="Could not find part of the video.";
+                            tagText="Cue not found";
+                            className="mediaErr";
+                            thisvid=undefined;
+                        } else {
+                            // All is well. Immediately overwrite the calculated cue list with saved cue list.
+                            thisvid.list=itemObj.list;
+                        }
                         // Add to list of videos
                         videos[itemIndex]=thisvid;
                         // Once we've processed all videos, update the playlist row UI.
@@ -638,6 +653,7 @@ function loadPlaylistRow($li,item) {
                             .prop("videos",videos)
                             .prop("data-source",item.source)
                             .prop("data-videos-text",item.text)
+                            .find(".tag").text(tagText).attr("title",tagHint).end()
                             .find("input").val(item.text).end();                                        
                         }
                     });
