@@ -1,6 +1,6 @@
 {
   "name": "khplaylist",
-  "version": "1.1.0b2",
+  "version": "1.1.0b3",
   "description": "A playlist for meeting media including JW Library videos as well as other external media.",
   "main": "main.js",
   "scripts": {
@@ -50,7 +50,7 @@
     "bower": "^1.8.2",
     "chai": "^4.1.2",
     "electron": "^1.7.10",
-    "electron-builder": "^19.52.1",
+    "electron-builder": "^19.53.7",
     "mocha": "^4.1.0"
   },
   "dependencies": {
