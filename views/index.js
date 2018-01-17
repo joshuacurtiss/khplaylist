@@ -328,13 +328,15 @@ $(document).ready(()=>{
     // Mouse movement handler (for fullscreen mode)
     var uiTimeout, uiStatus=false;
     $(window).mousemove(()=>{
-        var currentStatus=uiStatus;
-        uiStatus=true;
-        if( ! currentStatus ) $(".fullscreenMode.ui").animate({"opacity":0.7},400);
-        if(uiTimeout) clearTimeout(uiTimeout);
-        uiTimeout=setTimeout(()=>{
-            $(".fullscreenMode.ui").animate({"opacity":0},400,()=>{uiStatus=false});
-        },2000);
+        if( $("body").hasClass("fullscreenMode") ) {
+            var currentStatus=uiStatus;
+            uiStatus=true;
+            if( ! currentStatus ) $(".fullscreenMode.ui").animate({"opacity":0.7},400);
+            if(uiTimeout) clearTimeout(uiTimeout);
+            uiTimeout=setTimeout(()=>{
+                $(".fullscreenMode.ui").animate({"opacity":0},400,()=>{uiStatus=false});
+            },2000);
+        }
     });
 
     // Set up and restore playlist
