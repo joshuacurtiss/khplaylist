@@ -30,6 +30,8 @@ class ExternalMedia {
     set webvtt(webvtt) {
         if( webvtt instanceof WebVTT ) this._webvtt=webvtt;
         else this._webvtt=new WebVTT(webvtt);
+        // Sanitization, remove hidden control characters from cue content: 
+        this._webvtt.data.map(obj=>obj.content=obj.content.replace(/[^\u{0020}-\u{FFFF}]/gu,""));
         this.createList();
     }
 
