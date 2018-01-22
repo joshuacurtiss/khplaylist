@@ -191,7 +191,7 @@ body.playlistMode #videoControls {
 #videoCueList {
     position: relative;
     visibility: hidden;
-    width: 100%;
+    width: 36vw;
     border: 2px solid #222;
     border-radius: 8px;
     background-color: #0f0f0f;
@@ -201,20 +201,21 @@ body.playlistMode #videoControls {
 }
 #videoCueList h1 {
     position: fixed;
-    width: 35.1vw;
+    width: inherit;
     z-index: 10;
-    font-size: 2.5vh;
+    font-size: 2vh;
+    line-height: 2vh;
     color: #999;
     text-align:center;
     margin:0;
-    padding:0.7vh;
+    padding:0.7vh 0;
     background-color: #1c1c1c;
-    border-bottom: 2px solid #222;
+    border-bottom: 1px solid #222;
 }
 #videoCueList ol {
     position: relative;
     list-style: none; 
-    margin:4.5vh 0 0 0;
+    margin:3.5vh 0 0 0;
     padding:0;
 }
 #videoCueList li {
@@ -291,18 +292,19 @@ body.playlistMode #videoControls {
 #playlistContainer h1 {
     position: fixed;
     z-index:10;
-    width: 45.1vw;
+    width: inherit;
     font-size: 2.75vh;
+    line-height: 2.6vh;
     color: #999;
     text-align:center;
     margin:0;
-    padding:0.7vh;
+    padding:0.7vh 0;
     background-color: #1c1c1c;
-    border-bottom: 2px solid #222;
+    border-bottom: 1px solid #222;
 }
 #playlistContainer ol {
     list-style: none; 
-    margin:4.3vh 0 0 0; 
+    margin:4.1vh 0 0 0; 
     padding:0;
 }
 #playlistContainer .handle {
