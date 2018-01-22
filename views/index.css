@@ -270,6 +270,9 @@ body.playlistMode #videoControls {
     -webkit-user-select: none;
 }
 #playlistContainer h1 {
+    position: fixed;
+    z-index:10;
+    width: 45.1vw;
     font-size: 2.75vh;
     color: #999;
     text-align:center;
@@ -280,7 +283,7 @@ body.playlistMode #videoControls {
 }
 #playlistContainer ol {
     list-style: none; 
-    margin:0; 
+    margin:4.3vh 0 0 0; 
     padding:0;
 }
 #playlistContainer .handle {
