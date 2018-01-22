@@ -726,23 +726,24 @@ function purgeMedia() {
     } catch(err) {}
 }
 
-function mountPlaylistItem(li,index=0,start=false) {
+function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
     var $li=$(li);
     var key=$li.find("input").val();
     var videos=$li.prop("videos");
-    var item=videos[index];
+    var item=videos[videoIndex];
     // Write the cue list
     var cueHtml="";
-    videos.map((video,videoIndex)=>{
+    videos.map((video,thisVideoIndex)=>{
         cueHtml+=`<li class='videotitle'>${video.displayName}</li>`;
-        video.list.map((cue,cueIndex)=>{
+        video.list.map((cue,thisCueIndex)=>{
             let start=moment.duration(cue.start,"seconds");
             let end=moment.duration(cue.end,"seconds");
             cueHtml+=`
-                <li id='cue-${videoIndex}-${cueIndex}' data-video-index='${videoIndex}' data-cue-index='${cueIndex}'>
+                <li id='cue-${thisVideoIndex}-${thisCueIndex}' data-video-index='${thisVideoIndex}' data-cue-index='${thisCueIndex}'>
                     <div class="progress"></div>
                     <i class='fa fa-fw fa-circle-thin'></i>
                     <span class='content'>${cue.content}</span>
+                    <span class='trimButton pull-right fa fa-fw fa-scissors'></span>
                     <span class='time pull-right'>
                         ${start.format("m:ss")}.${Math.floor(start.milliseconds()/100)} - 
                         ${end.format("m:ss")}.${Math.floor(end.milliseconds()/100)}
@@ -753,30 +754,38 @@ function mountPlaylistItem(li,index=0,start=false) {
     });
     $("#videoCueList")
         .css("visibility","hidden")
-        .find("ol").html(cueHtml);
+        .find("li.selected").removeClass("selected").end()
+        .find("ol").html(cueHtml).end()
+        .find("li").click(function(){
+            var $cueli=$(this);
+            var videoIndex=Number($cueli.attr("data-video-index"));
+            var cueIndex=Number($cueli.attr("data-cue-index"));
+            if( Number.isInteger(videoIndex) && Number.isInteger(cueIndex) ) 
+                mountPlaylistItem($("#playlist .selected"),videoIndex,cueIndex);
+        });
     // Mount to videoController
     if(imageTimeout) clearTimeout(imageTimeout);
     videoController.backgroundImage="none";
     if( item ) {
         pauseVideo();
-        console.log(`Mounting #${index} "${item.displayName}" (with ${item.list.length} cues).`);
+        console.log(`Mounting video #${videoIndex} "${item.displayName}" cue #${cueIndex}.`);
         $("#text").hide();
         videoController.text="";
-        videoController.set("data-video-index",index);
-        var cueIndex=item.list.length>=0?0:-1;
+        videoController.set("data-video-index",videoIndex);
         $("#videoCueList i.fa")
             .removeClass("fa-pause-circle fa-play-circle")
             .addClass("fa-circle-thin");
-        var $cueIcon=$(`#cue-${index}-${cueIndex} i.fa`).removeClass("fa-circle-thin");
+        var $cueli=$(`#cue-${videoIndex}-${cueIndex}`).addClass("selected");
+        var $cueIcon=$cueli.find(`i.fa`).removeClass("fa-circle-thin");
         videoController.set("data-cue-index",cueIndex);
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
                 .replace("#","%23")
                 .replace("(","%28")
                 .replace(")","%29");
-        if( item.list.length ) {
+        if( item.list.length-1>=cueIndex ) {
             if( videoController.src!=`file://${os.type()=="Darwin"?"":"/"}${escapedPath}` ) videoController.src=escapedPath;
             else setCueListHeight();
-            videoController.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
+            videoController.currentTime=Math.ceil(parseFloat(item.list[cueIndex].start)*100)/100;
             if(start) {
                 playVideo();
                 $cueIcon.addClass("fa-play-circle");
@@ -788,10 +797,10 @@ function mountPlaylistItem(li,index=0,start=false) {
             videoController.currentTime=0;
             videoController.set("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
             videoController.backgroundImage=`url(${escapedPath})`;
-            if( videos.length-1>index ) {
+            if( videos.length-1>videoIndex ) {
                 // If there are more items for this playlist item, set timer.
                 console.log(`Counting down ${ExternalMedia.IMAGE_DURATION} secs.`)
-                imageTimeout=setTimeout(()=>{mountPlaylistItem($li,index+1,true)}, ExternalMedia.IMAGE_DURATION*1000);
+                imageTimeout=setTimeout(()=>{mountPlaylistItem($li,videoIndex+1,0,true)}, ExternalMedia.IMAGE_DURATION*1000);
             }
         }
     } else {
@@ -837,23 +846,13 @@ function checkVideo(){
         // Check only to 2 decimals because some software calculates video duration accurate to 2 decimals only.
         if( videoController.currentTime.toFixed(2)>=endTime ) {
             if( curCueIndex<v.list.length-1 ) {
-                $(`#cue-${curVideoIndex}-${curCueIndex}`)
-                    .find(".progress")
-                        .css("width","0%")
-                        .end()
-                    .find("i.fa")
-                        .removeClass("fa-pause-circle fa-play-circle")
-                        .addClass("fa-circle-thin");
-                curCueIndex+=1;
-                console.log("Moving to cue #"+curCueIndex+".");
-                videoController.currentTime=Math.ceil(parseFloat(v.list[curCueIndex].start)*100)/100;
-                videoController.set("data-cue-index",curCueIndex);
-                $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
-                    .removeClass("fa-circle-thin fa-pause-circle")
-                    .addClass("fa-play-circle");
+                // Advance to next cue
+                mountPlaylistItem($li,curVideoIndex,curCueIndex+1,true);
             } else if( curVideoIndex<videos.length-1 ) {
-                mountPlaylistItem($li,curVideoIndex+1,true);
+                // If we're out of cues, advance to next video
+                mountPlaylistItem($li,curVideoIndex+1,0,true);
             } else {
+                // If we're out of videos, pause and end!
                 pauseVideo();
                 $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
                     .removeClass("fa-circle-thin fa-play-circle")

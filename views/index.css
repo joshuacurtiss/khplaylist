@@ -241,7 +241,26 @@ body.playlistMode #videoControls {
     height: 30px;
     left: 0;
     width: 0;
+}
+#videoCueList li.selected {
+    background-color: #1c1c1c;
+}
+#videoCueList li.selected .progress {
     background-color: #2c2c2c;
+}
+#videoCueList .trimButton {
+    visibility: hidden;
+    cursor: pointer;
+    line-height: 30px;
+    transform: rotate(315deg);
+}
+/*
+#videoCueList[style*="visible"] li.selected .trimButton {
+    visibility: visible;
+}
+*/
+#videoCueList li.selected .trimButton:hover {
+    color:white;
 }
 
 /* Reward and Fast-Forward are hidden until they're fine-tuned a bit more */
