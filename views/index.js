@@ -8,6 +8,7 @@ const os=require("os");
 const path=require("path");
 const fs=require("fs-extra");
 const hash=require("string-hash");
+const moment=require("moment");
 const yazl=require("yazl");
 const yauzl=require("yauzl");
 const progress=require('progress-stream');
@@ -87,6 +88,7 @@ $(document).ready(()=>{
     videoController.video.addEventListener("timeupdate", checkVideo, false);
     videoController.video.addEventListener("timeupdate", updateVideoUI, false);
     videoController.video.addEventListener("click", toggleVideo, false);
+    videoController.video.addEventListener("loadedmetadata", setCueListHeight);
     $(".fullscreenToggle").click(toggleFullscreen);
     $(".secondButton").click(toggleSecondDisplay);
     $(".settingsButton").click(handleSettings);
@@ -729,6 +731,30 @@ function mountPlaylistItem(li,index=0,start=false) {
     var key=$li.find("input").val();
     var videos=$li.prop("videos");
     var item=videos[index];
+    // Write the cue list
+    var cueHtml="";
+    videos.map((video,videoIndex)=>{
+        cueHtml+=`<li class='videotitle'>${video.displayName}</li>`;
+        video.list.map((cue,cueIndex)=>{
+            let start=moment.duration(cue.start,"seconds");
+            let end=moment.duration(cue.end,"seconds");
+            cueHtml+=`
+                <li id='cue-${videoIndex}-${cueIndex}' data-video-index='${videoIndex}' data-cue-index='${cueIndex}'>
+                    <div class="progress"></div>
+                    <i class='fa fa-fw fa-circle-thin'></i>
+                    <span class='content'>${cue.content}</span>
+                    <span class='time pull-right'>
+                        ${start.format("m:ss")}.${Math.floor(start.milliseconds()/100)} - 
+                        ${end.format("m:ss")}.${Math.floor(end.milliseconds()/100)}
+                    </span>
+                </li>
+            `;
+        });
+    });
+    $("#videoCueList")
+        .css("visibility","hidden")
+        .find("ol").html(cueHtml);
+    // Mount to videoController
     if(imageTimeout) clearTimeout(imageTimeout);
     videoController.backgroundImage="none";
     if( item ) {
@@ -737,15 +763,26 @@ function mountPlaylistItem(li,index=0,start=false) {
         $("#text").hide();
         videoController.text="";
         videoController.set("data-video-index",index);
-        videoController.set("data-cue-index",item.list.length>=0?0:-1);
+        var cueIndex=item.list.length>=0?0:-1;
+        $("#videoCueList i.fa")
+            .removeClass("fa-pause-circle fa-play-circle")
+            .addClass("fa-circle-thin");
+        var $cueIcon=$(`#cue-${index}-${cueIndex} i.fa`).removeClass("fa-circle-thin");
+        videoController.set("data-cue-index",cueIndex);
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
                 .replace("#","%23")
                 .replace("(","%28")
                 .replace(")","%29");
         if( item.list.length ) {
             if( videoController.src!=`file://${os.type()=="Darwin"?"":"/"}${escapedPath}` ) videoController.src=escapedPath;
+            else setCueListHeight();
             videoController.currentTime=Math.ceil(parseFloat(item.list[0].start)*100)/100;
-            if(start) playVideo();
+            if(start) {
+                playVideo();
+                $cueIcon.addClass("fa-play-circle");
+            } else {
+                $cueIcon.addClass("fa-pause-circle");
+            }
         } else if( item.isImage() ) {
             videoController.src="";
             videoController.currentTime=0;
@@ -773,6 +810,14 @@ function updateVideoUI(){
     $curTime.text(videoController.currentTime.toFixed(2));
 }
 
+function setCueListHeight(){
+    var $playlistContainer=$("#playlistContainer");
+    var playlistBottom=$playlistContainer.offset().top+$playlistContainer.outerHeight(true);
+    var $cueList=$("#videoCueList");
+    var newHeight=Math.floor(playlistBottom-$cueList.offset().top)-5;
+    $cueList.css("height",`${newHeight}px`).css("visibility",$cueList.find("ol").html().length==0?"hidden":"visible");
+}
+
 function checkVideo(){
     var curVideoIndex=Number(videoController.get("data-video-index"));
     var curCueIndex=Number(videoController.get("data-cue-index"));
@@ -780,21 +825,39 @@ function checkVideo(){
         var $li=$("#playlist li.selected");
         var videos=$li.prop("videos");
         var v=videos[curVideoIndex];
+        var c=v.list[curCueIndex];
         var endTime=parseFloat((v.list.length>curCueIndex)?v.list[curCueIndex].end:0);
         $("#playlist .selected .progress, .fullscreenMode.progress")
             .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,videoController.currentTime)}%`);
+        var cuePct=Math.floor((videoController.currentTime-c.start)/(c.end-c.start)*100);
+        if( cuePct>100 ) cuePct=100;
+        $(`#cue-${curVideoIndex}-${curCueIndex} .progress`)
+            .css("width", cuePct+"%");
         // Take action if video has passed the designated end time.
         // Check only to 2 decimals because some software calculates video duration accurate to 2 decimals only.
         if( videoController.currentTime.toFixed(2)>=endTime ) {
             if( curCueIndex<v.list.length-1 ) {
+                $(`#cue-${curVideoIndex}-${curCueIndex}`)
+                    .find(".progress")
+                        .css("width","0%")
+                        .end()
+                    .find("i.fa")
+                        .removeClass("fa-pause-circle fa-play-circle")
+                        .addClass("fa-circle-thin");
                 curCueIndex+=1;
                 console.log("Moving to cue #"+curCueIndex+".");
                 videoController.currentTime=Math.ceil(parseFloat(v.list[curCueIndex].start)*100)/100;
                 videoController.set("data-cue-index",curCueIndex);
+                $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
+                    .removeClass("fa-circle-thin fa-pause-circle")
+                    .addClass("fa-play-circle");
             } else if( curVideoIndex<videos.length-1 ) {
                 mountPlaylistItem($li,curVideoIndex+1,true);
             } else {
                 pauseVideo();
+                $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
+                    .removeClass("fa-circle-thin fa-play-circle")
+                    .addClass("fa-pause-circle");
                 videoController.set("data-video-index","-1");
                 videoController.set("data-cue-index","-1");
                 checkControls();
@@ -856,11 +919,25 @@ function toggleVideo(){
     }
 }
 function playVideo(){
-    $("#videoControls .vidplaypause").removeClass("fa-play").addClass("fa-pause");
+    var curVideoIndex=Number(videoController.get("data-video-index"));
+    var curCueIndex=Number(videoController.get("data-cue-index"));
+    $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
+        .removeClass("fa-pause-circle fa-circle-thin")
+        .addClass("fa-play-circle");
+    $("#videoControls .vidplaypause")
+        .removeClass("fa-play")
+        .addClass("fa-pause");
     videoController.play();
 }
 function pauseVideo(){
-    $("#videoControls .vidplaypause").removeClass("fa-pause").addClass("fa-play");
+    var curVideoIndex=Number(videoController.get("data-video-index"));
+    var curCueIndex=Number(videoController.get("data-cue-index"));
+    $(`#cue-${curVideoIndex}-${curCueIndex} i.fa`)
+        .removeClass("fa-play-circle fa-circle-thin")
+        .addClass("fa-pause-circle");
+    $("#videoControls .vidplaypause")
+        .removeClass("fa-pause")
+        .addClass("fa-play");
     videoController.pause();
 }
 function prevVideo(){
