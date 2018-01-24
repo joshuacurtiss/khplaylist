@@ -307,7 +307,7 @@ $(document).ready(()=>{
                             video.list[0].end-STUDY_PAR_END_TRIM>video.list[0].start ) {
                             console.log(`Adjusting time for "${video.displayName}" (${video.list[0].start}-${video.list[0].end}) by ${STUDY_PAR_END_TRIM} sec.`);
                             video.list[0].end-=STUDY_PAR_END_TRIM;
-                            $li.prop("data-source","media");
+                            $li.prop("data-source","media").find("input").attr("readonly","");
                         } 
                     }
                 }
@@ -316,7 +316,31 @@ $(document).ready(()=>{
               $li=$li.next();
           });
       }
-  
+
+    // Trim Dialog
+    trimDialog=$( "#trimDialog" ).dialog({
+        autoOpen: false,
+        resizable: false,
+        height: $(window).height() * 0.85,
+        width: $(window).width() * 0.4,
+        modal: true,
+        buttons: [
+            {
+                id: "trimSubmit",
+                text: "Apply",
+                click: handleTrimSubmit
+            },
+            {
+                id: "trimCancel",
+                text: "Cancel",
+                click: function() {
+                    trimDialog.dialog("close");
+                }
+            }
+        ]
+    });
+    document.getElementById("trimVideo").addEventListener("loadedmetadata", handleTrimVideoLoaded);
+
     // Dropdown menu customization
     $('#dropdown').on('show', function(event, dropdownData) {
         var $li=$("#playlist .selected");
@@ -367,6 +391,69 @@ $(document).ready(()=>{
     // Done!
     console.log("Initialized!");
 });
+
+// Trim Dialog
+function handleTrim(){
+    // Get video/cue info
+    var $cueli=$("#videoCueList .selected");
+    var videoIndex=Number($cueli.attr("data-video-index"));
+    var cueIndex=Number($cueli.attr("data-cue-index"));
+    var videos=$("#playlist li.selected").prop("videos");
+    var cue=videos[videoIndex].list[cueIndex];
+    var video=document.getElementById("trimVideo");
+    // Set all the elements in the trim window
+    $("#trimVideoName").val(videos[videoIndex].displayName);
+    $("#trimCueName").val(cue.content);
+    video.src=videoController.src;
+    video.currentTime=cue.start;
+    // Setup the slider
+    $( "#trimSlider" ).slider({
+        range: true,
+        min: cue.min,
+        max: cue.max,
+        step: 0.05,
+        values: [cue.start, cue.end],
+        slide: handleTrimSlide
+    });
+    return false;
+}
+function handleTrimSlide(event,ui){
+    // Scrub the video along with the slider
+    document.getElementById("trimVideo").currentTime=ui.value;    
+}
+function handleTrimSubmit(){
+    // Acquire our playlist item video objects
+    var $cueli=$("#videoCueList .selected");
+    var videoIndex=Number($cueli.attr("data-video-index"));
+    var cueIndex=Number($cueli.attr("data-cue-index"));
+    var $li=$("#playlist li.selected");
+    var videos=$li.prop("videos");
+    // Update the existing video's display name based on form data
+    videos[videoIndex].displayName=$("#trimVideoName").val();
+    // Update the entire playlist text based on new video display names
+    var videostext=videos.map(video=>video.displayName).join("; ");
+    // Update the cue start/end times and the name
+    var cue=videos[videoIndex].list[cueIndex];
+    var data=$("#trimSlider").slider("option","values");
+    cue.start=data[0];
+    cue.end=data[1];
+    cue.content=$("#trimCueName").val();
+    // Update playlist item for its edited "media" state.
+    $li .prop("data-source","media")
+        .prop("data-videos-text",videostext)
+        .find("input").val(videostext).attr("readonly","");
+    // Re-mount the playlist item just to be clean
+    mountPlaylistItem($li,videoIndex,cueIndex);
+    trimDialog.dialog("close");
+}
+function handleTrimVideoLoaded(){
+    // Don't display the dialog until now, when the video is loaded
+    trimDialog.dialog("open");
+    // Adjust the height of the dialog according to the height of the video in it
+    var heightDelta=trimDialog.height()-trimDialog.find("form").height();
+    var curHeight=trimDialog.dialog("option","height");
+    trimDialog.dialog("option","height",curHeight-heightDelta);
+}
 
 function indexVideos() {
     // Accumulate video paths
@@ -612,7 +699,7 @@ function loadPlaylistRow($li,item) {
         parsePlaylistItem($input);
     } else {
         // Load exact specs
-        var videos=new Array(item[item.source]);
+        var videos=new Array(item[item.source].length);
         var className="valid";
         var tagText="";
         var tagHint="";
@@ -647,18 +734,19 @@ function loadPlaylistRow($li,item) {
                         } else {
                             // All is well. Immediately overwrite the calculated cue list with saved cue list.
                             thisvid.list=itemObj.list;
+                            thisvid.displayName=itemObj.displayName;
                         }
                         // Add to list of videos
                         videos[itemIndex]=thisvid;
                         // Once we've processed all videos, update the playlist row UI.
                         if( videos.every(v=>v!==null) ) {
-                            console.log(videos);
                             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
-                            .prop("videos",videos)
-                            .prop("data-source",item.source)
-                            .prop("data-videos-text",item.text)
-                            .find(".tag").text(tagText).attr("title",tagHint).end()
-                            .find("input").val(item.text).end();                                        
+                                .prop("videos",videos)
+                                .prop("data-source",item.source)
+                                .prop("data-videos-text",item.text)
+                                .find(".tag").text(tagText).attr("title",tagHint).end()
+                                .find("input").val(item.text).end();
+                            if( item.source!="text" ) $li.find("input").attr("readonly","");
                         }
                     });
                 }
@@ -762,7 +850,8 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
             var cueIndex=Number($cueli.attr("data-cue-index"));
             if( Number.isInteger(videoIndex) && Number.isInteger(cueIndex) ) 
                 mountPlaylistItem($("#playlist .selected"),videoIndex,cueIndex);
-        });
+        }).end()
+        .find("li .trimButton").click(handleTrim);
     // Mount to videoController
     if(imageTimeout) clearTimeout(imageTimeout);
     videoController.backgroundImage="none";
@@ -985,6 +1074,7 @@ function createPlaylistRow() {
         </li>
     `)
     .prop("videos",[])
+    .prop("data-source","text")
     .click(playlistItemFocus)
     .find("input")
         .blur(playlistItemBlur)
@@ -1035,6 +1125,11 @@ function playlistItemKeyDown(e){
     } else if( fullSelection && key=="f" ) {
         // If text is fully selected and hit "f", toggle fullscreen mode.
         toggleFullscreen();
+        return false;
+    } else if( (e.key=="Backspace" || e.key=="Delete") && val.length && $input.attr("readonly")!==undefined ) {
+        // If hit backspace or delete key and field isn't empty but it's readonly, allow clearing the field.
+        // This is the only way to clear the field with the keyboard when it's a readonly "media" field.
+        $input.removeAttr("readonly").val("");
         return false;
     } else if( (e.key=="Backspace" || e.key=="Delete") && val.length==0 && $li.parent().find("input:placeholder-shown").length>1 ) {
         // If hit backspace or delete key and field is already empty, delete the row.

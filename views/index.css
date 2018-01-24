@@ -254,13 +254,32 @@ body.playlistMode #videoControls {
     line-height: 30px;
     transform: rotate(315deg);
 }
-/*
 #videoCueList[style*="visible"] li.selected .trimButton {
     visibility: visible;
 }
-*/
 #videoCueList li.selected .trimButton:hover {
     color:white;
+}
+#trimVideo {
+    margin-bottom: 1vh;
+}
+#trimSlider {
+    height: 0.5em;
+    margin: 1vh 0;
+}
+#trimSlider .ui-slider-handle {
+    margin-top: -0.1vh;
+    width: 0.7em;
+}
+#trimDialog label {
+    width: 26%;
+    display: inline-block;
+    text-align: right;
+    font-weight: bold;
+    margin: 2vh 0 0 0;
+}
+#trimDialog input {
+    width: 70%;
 }
 
 /* Reward and Fast-Forward are hidden until they're fine-tuned a bit more */
