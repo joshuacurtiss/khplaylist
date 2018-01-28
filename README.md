@@ -1,5 +1,3 @@
-## What is it? ##
-
 An app that helps you build a media playlist to facilitate more convenient and expedient playing of media during the meeting, particularly for sign language congregations that use media extensively during the meeting program.
 
 This is especially intended for congregations with Windows computers, since they cannot use SL Studio and the native JW app does not yet support playlists. But it works on Macs too.
