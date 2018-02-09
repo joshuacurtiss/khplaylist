@@ -2,8 +2,4 @@ node_modules
 bower_components
 bin
 builds
-dist
-data/state.json
-data/playlist.json
-data/webvttcache/*.webvtt
-data/media/*
+dev/webvttcache
