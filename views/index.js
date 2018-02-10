@@ -1298,11 +1298,13 @@ function windowKeyHandler(e) {
             "arrowright": fastforwardVideo
         }
     };
-    if( $targ.is("input") || $targ.is("textarea") ) {
+    if( $targ.is("input") || $targ.is("textarea") || $targ.hasClass("ui-slider-handle") ) {
+        // Just pass on the event if it's on an input/textarea or the trim slider handle
         return true;
     } else if( cmds[e.type].hasOwnProperty(key) ) {
+        // Catch the event and execute the matching function
         e.preventDefault();
-        if( key=="escape" && !$("body").hasClass("fullscreenMode") ) return;
+        if( key=="escape" && !$("body").hasClass("fullscreenMode") ) return; // Esc only toggles out of fullscreen
         cmds[e.type][key]();
     }
 }
