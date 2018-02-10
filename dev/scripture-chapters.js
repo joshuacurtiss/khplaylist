@@ -7,13 +7,13 @@
 const fs=require("fs-extra");
 const os=require("os");
 const path=require("path");
-const BibleBook=require('../bower_components/scripture/BibleBook');
-const ScriptureUtil=require('../bower_components/scripture/ScriptureUtil');
+const BibleBook=require('scripture/BibleBook');
+const ScriptureUtil=require('scripture/ScriptureUtil');
 const ScriptureVideoUtil=require('../model/ScriptureVideoUtil');
 const ScriptureVideo=require('../model/ScriptureVideo');
-const Scripture=require('../bower_components/scripture/Scripture');
+const Scripture=require('scripture/Scripture');
 const WebvttCacheManager=require("../model/WebvttCacheManager");
-const WebVttWrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+const WebVttWrapperController=require("webvtt/wrappers/WrapperController");
 
 // Init
 var videopaths=[path.join(os.homedir(),os.type()=="Windows_NT"?"Videos":"Movies")];

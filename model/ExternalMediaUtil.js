@@ -1,5 +1,5 @@
 const ExternalMedia=require("./ExternalMedia");
-let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+let WrapperController=require("webvtt/wrappers/WrapperController");
 let escapeStringRegexp=require("escape-string-regexp");
 let fs=require("fs-extra");
 let path=require("path");

@@ -1,6 +1,6 @@
-let Scripture=require("../bower_components/scripture/Scripture");
+let Scripture=require("scripture/Scripture");
 let ScriptureVideo=require("./ScriptureVideo");
-let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+let WrapperController=require("webvtt/wrappers/WrapperController");
 let fs=require("fs-extra");
 let path=require("path");
 let escapeStringRegexp=require("escape-string-regexp");

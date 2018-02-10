@@ -1,7 +1,7 @@
-const REGEX=require("../bower_components/theoreference/RegEx");
-let Reference=require("../bower_components/theoreference/Reference");
+const REGEX=require("theoreference/RegEx");
+let Reference=require("theoreference/Reference");
 let ReferenceVideo=require("./ReferenceVideo");
-let WrapperController=require("../bower_components/webvtt/wrappers/WrapperController");
+let WrapperController=require("webvtt/wrappers/WrapperController");
 let fs=require("fs-extra");
 let path=require("path");
 let escapeStringRegexp=require("escape-string-regexp");

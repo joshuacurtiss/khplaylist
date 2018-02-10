@@ -1,7 +1,7 @@
 const Cue=require("./Cue");
-const Publication=require("../bower_components/theoreference/Publication");
-const Reference=require("../bower_components/theoreference/Reference");
-const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
+const Publication=require("theoreference/Publication");
+const Reference=require("theoreference/Reference");
+const WebVTT=require("webvtt/lib/WebVTT");
 
 class ReferenceVideo {
 

@@ -1,6 +1,6 @@
 const Cue=require("./Cue");
-const Scripture=require("../bower_components/scripture/Scripture");
-const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
+const Scripture=require("scripture/Scripture");
+const WebVTT=require("webvtt/lib/WebVTT");
 
 class ScriptureVideo {
 

@@ -14,13 +14,13 @@ For more usage information, view the [KH Playlist](http://www.curtiss.me/khplayl
 
 ## How do I compile it myself? ##
 
-The application runs on [Node.js](https://nodejs.org) and [Electron](https://electronjs.org), and is compatible with Mac and Windows. To compile it, you will need Node.js installed.
+The application runs on [Node.js](https://nodejs.org) and [Electron](https://electronjs.org), and is compatible with Mac and Windows. To compile it, you will need Node.js and Yarn installed.
 
 After you download or clone the source, install all dependencies and run the build script. It is named `build-installer-win` for Windows and `build-installer-mac` for Mac. For instance, to build for Windows:
 
 ```
-npm install
-npm run build-installer-win
+yarn install
+yarn build-installer-win
 ```
 
 It will place a compiled executable for your system architecture into a directory in the `builds` directory, as well as an installer file (Setup.exe for Windows, `dmg` file for Mac). 

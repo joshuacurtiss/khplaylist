@@ -1,7 +1,7 @@
 const path=require("path");
 const fs=require("fs-extra");
 const Cue=require("./Cue");
-const WebVTT=require("../bower_components/webvtt/lib/WebVTT");
+const WebVTT=require("webvtt/lib/WebVTT");
 
 class ExternalMedia {
 
