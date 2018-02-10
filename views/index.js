@@ -394,6 +394,8 @@ $(document).ready(()=>{
 
 // Trim Dialog
 function handleTrim(){
+    // Pause video if it's going
+    if( ! videoController.paused ) videoController.pause();
     // Get video/cue info
     var $cueli=$("#videoCueList .selected");
     var videoIndex=Number($cueli.attr("data-video-index"));

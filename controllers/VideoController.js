@@ -66,6 +66,10 @@ class VideoController {
         return this.video.duration;
     }
 
+    get paused() {
+        return this.video.paused;
+    }
+
     pause() {
         this.video.pause();
         if( this.secondWin ) 
