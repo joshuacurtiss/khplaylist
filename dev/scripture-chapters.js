@@ -36,12 +36,14 @@ function process(scrip,data) {
                 var verse=cue.content.substr(cue.content.indexOf(":")+1);
                 return cue.content.substr(0,1)!=="*" && /^\d+$/.test(verse);
             });
-            // Acquire the verse
-            let content=goodcues[goodcues.length-1].content;
-            var verse=Number(content.substr(content.indexOf(":")+1));
-            // Only store if we found a valid verse
-            if( Number.isInteger(verse) ) 
-                data[key][ch-1]=verse;
+            if( goodcues.length ) {
+                // Acquire the verse
+                let content=goodcues[goodcues.length-1].content;
+                var verse=Number(content.substr(content.indexOf(":")+1));
+                // Only store if we found a valid verse
+                if( Number.isInteger(verse) ) 
+                    data[key][ch-1]=verse;
+            }
         }
         // Keep track of how many chapters are asynchronously being processed
         chCnt--;
