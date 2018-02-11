@@ -824,23 +824,25 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
     // Write the cue list
     var cueHtml="";
     videos.map((video,thisVideoIndex)=>{
-        cueHtml+=`<li class='videotitle'>${video.displayName}</li>`;
-        video.list.map((cue,thisCueIndex)=>{
-            let start=moment.duration(cue.start,"seconds");
-            let end=moment.duration(cue.end,"seconds");
-            cueHtml+=`
-                <li id='cue-${thisVideoIndex}-${thisCueIndex}' data-video-index='${thisVideoIndex}' data-cue-index='${thisCueIndex}'>
-                    <div class="progress"></div>
-                    <i class='fa fa-fw fa-circle-thin'></i>
-                    <span class='content'>${cue.content}</span>
-                    <span class='trimButton pull-right fa fa-fw fa-scissors'></span>
-                    <span class='time pull-right'>
-                        ${start.format("m:ss")}.${Math.floor(start.milliseconds()/100)} - 
-                        ${end.format("m:ss")}.${Math.floor(end.milliseconds()/100)}
-                    </span>
-                </li>
-            `;
-        });
+        if( video ) {
+            cueHtml+=`<li class='videotitle'>${video.displayName}</li>`;
+            video.list.map((cue,thisCueIndex)=>{
+                let start=moment.duration(cue.start,"seconds");
+                let end=moment.duration(cue.end,"seconds");
+                cueHtml+=`
+                    <li id='cue-${thisVideoIndex}-${thisCueIndex}' data-video-index='${thisVideoIndex}' data-cue-index='${thisCueIndex}'>
+                        <div class="progress"></div>
+                        <i class='fa fa-fw fa-circle-thin'></i>
+                        <span class='content'>${cue.content}</span>
+                        <span class='trimButton pull-right fa fa-fw fa-scissors'></span>
+                        <span class='time pull-right'>
+                            ${start.format("m:ss")}.${Math.floor(start.milliseconds()/100)} - 
+                            ${end.format("m:ss")}.${Math.floor(end.milliseconds()/100)}
+                        </span>
+                    </li>
+                `;
+            });
+        }
     });
     $("#videoCueList")
         .css("visibility","hidden")
