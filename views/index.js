@@ -36,7 +36,7 @@ const RW_SECS=5;
 const STUDY_PAR_END_TRIM=1.5;
 var videoController, $curTime, $chname;
 var videopaths=[];
-var imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
+var imageTime=0, imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var settings=new SettingsUtil(APPDATADIR+"state.json");
 var videoAppController, cachemgr, videopathWatcher, svu, rvu, emu;
 var su=new ScriptureUtil();
@@ -855,7 +855,10 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
         }).end()
         .find("li .trimButton").click(handleTrim);
     // Mount to videoController
-    if(imageTimeout) clearTimeout(imageTimeout);
+    if(imageTimeout) {
+        clearTimeout(imageTimeout);
+        imageTimeout=null;
+    }
     videoController.backgroundImage="none";
     if( item ) {
         pauseVideo();
@@ -888,11 +891,7 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
             videoController.currentTime=0;
             videoController.set("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
             videoController.backgroundImage=`url(${escapedPath})`;
-            if( videos.length-1>videoIndex ) {
-                // If there are more items for this playlist item, set timer.
-                console.log(`Counting down ${ExternalMedia.IMAGE_DURATION} secs.`)
-                imageTimeout=setTimeout(()=>{mountPlaylistItem($li,videoIndex+1,0,true)}, ExternalMedia.IMAGE_DURATION*1000);
-            }
+            if( start ) playImage();
         }
     } else {
         console.log(`Nothing found for "${key}". Blanking video.`);
@@ -961,8 +960,9 @@ function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
     // Calculate sum of all past videos/cues played so far
     for( var vi=0 ; vi<=videoIndex ; vi++ ) {
         if( videos[vi].isImage() ) {
-            // If it's an image, just give the image duration constant
-            sum+=ExternalMedia.IMAGE_DURATION;
+            // If it's an image, add image duration or if currently in process, the time into current image
+            if( vi===videoIndex ) sum+=imageTime;
+            else sum+=ExternalMedia.IMAGE_DURATION;
         } else {
             // Otherwise, add all the cues lengths for a given video's list
             cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
@@ -972,7 +972,7 @@ function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
         }
     }
     // Now add time for the current video
-    if( videos[videoIndex].list.length>cueIndex )
+    if( videos[videoIndex].isVideo() && videos[videoIndex].list.length>cueIndex )
         sum+=pos-videos[videoIndex].list[cueIndex].start;
     // Figure out total play time
     var fullPlayLength=0;
@@ -996,16 +996,61 @@ function toggleFullscreen(){
 
 function checkControls() {
     var curVideoIndex=Number(videoController.get("data-video-index"));
-    var curCueIndex=Number(videoController.get("data-cue-index"));
     var $controls=$("#videoControls .vidff, #videoControls .vidrw, #videoControls .vidplaypause");
-    if( curVideoIndex>=0 && curCueIndex>=0 ) $controls.removeClass("disabled");
+    if( curVideoIndex>=0 ) $controls.removeClass("disabled");
     else $controls.addClass("disabled");
+}
+
+function playImage(){
+    var curVideoIndex=Number(videoController.get("data-video-index"));
+    var curCueIndex=Number(videoController.get("data-cue-index"));
+    var $li=$("#playlist .selected");
+    var videos=$li.prop("videos");
+    // Only play if there are images to be played
+    if( videos.length-1>=curVideoIndex ) {
+        clearTimeout(imageTimeout);
+        imageTime=0;
+        // Every 0.5 sec, update progress bar and check whether to mount next item or stop (because we're at the end)
+        imageTimeout=setInterval(()=>{
+            // Update progress bar
+            imageTime+=0.5;
+            $("#playlist .selected .progress, .fullscreenMode.progress")
+                .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,0)}%`);
+            if( imageTime>=ExternalMedia.IMAGE_DURATION ) {
+                if( videos.length-1>curVideoIndex ) {
+                    // If more media, mount next item
+                    mountPlaylistItem($li,curVideoIndex+1,0,true)
+                } else {
+                    // Otherwise, pause and update controls.
+                    pauseImage();
+                    videoController.set("data-video-index","-1");
+                    checkControls();
+                }
+            }
+        }, 500);
+        $("#videoControls .vidplaypause")
+            .removeClass("fa-play")
+            .addClass("fa-pause");
+    }
+}
+
+function pauseImage(){
+    clearTimeout(imageTimeout);
+    imageTimeout=null;
+    $("#videoControls .vidplaypause")
+        .removeClass("fa-pause")
+        .addClass("fa-play");                    
 }
 
 function toggleVideo(){
     if( ! $("#videoControls .vidplaypause").hasClass('disabled') ) {
-        if(videoController.video.paused && videoController.video.readyState>2) playVideo();
-        else pauseVideo();
+        if( videoController.isVideo() ) {
+            if(videoController.paused && videoController.video.readyState>2) playVideo();
+            else pauseVideo();
+        } else {
+            if( imageTimeout ) pauseImage();
+            else playImage();
+        }
     }
 }
 function playVideo(){

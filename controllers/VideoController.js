@@ -70,6 +70,14 @@ class VideoController {
         return this.video.paused;
     }
 
+    isImage() {
+        return ! this.isVideo();
+    }
+
+    isVideo() {
+        return this.backgroundImage==="none";
+    }
+
     pause() {
         this.video.pause();
         if( this.secondWin ) 
