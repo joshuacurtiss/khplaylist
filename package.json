@@ -64,10 +64,10 @@
     "moment": "^2.20.1",
     "moment-duration-format": "^2.2.1",
     "progress-stream": "^2.0.0",
-    "scripture": "joshuacurtiss/scripture#716b39e3f8975fc967edcc1a10b359299963545a",
+    "scripture": "joshuacurtiss/scripture#1.0.0",
     "string-hash": "^1.1.3",
     "theoreference": "joshuacurtiss/theoreference#a27bdd01bd3a3c228437ae67e64f38cbdde4be92",
-    "webvtt": "joshuacurtiss/webvtt#v1.2.2",
+    "webvtt": "joshuacurtiss/webvtt#1.2.2",
     "yauzl": "^2.9.1",
     "yazl": "^2.4.3"
   }

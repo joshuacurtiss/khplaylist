@@ -2054,9 +2054,9 @@ sax@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
 
-scripture@joshuacurtiss/scripture#716b39e3f8975fc967edcc1a10b359299963545a:
-  version "0.1.0"
-  resolved "https://codeload.github.com/joshuacurtiss/scripture/tar.gz/716b39e3f8975fc967edcc1a10b359299963545a"
+scripture@joshuacurtiss/scripture#1.0.0:
+  version "1.0.0"
+  resolved "https://codeload.github.com/joshuacurtiss/scripture/tar.gz/b672b9666a509f6fddba3b645a85371d729c422c"
 
 semver-diff@^2.0.0:
   version "2.1.0"
@@ -2415,7 +2415,7 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-webvtt@joshuacurtiss/webvtt#v1.2.2:
+webvtt@joshuacurtiss/webvtt#1.2.2:
   version "1.2.2"
   resolved "https://codeload.github.com/joshuacurtiss/webvtt/tar.gz/cd1ac9ee605922add604100e9f3615b5fd9e456b"
   dependencies:
