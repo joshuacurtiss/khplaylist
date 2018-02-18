@@ -1299,8 +1299,11 @@ function playlistItemKeyUp(e){
         // If you're typing and this is the last row, add another empty row at end.
         appendPlaylistRow($li);
     }
-    if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 ) 
-        $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new").prop("data-videos-text","");
+    if( ["ArrowLeft","ArrowRight","Shift","Meta","Alt","Control","Escape","Tab"].indexOf(e.key)<0 ) {
+        $li.removeClass(PLAYLISTITEM_CLASSES).addClass("new");
+        // If no media is found for this item, clear "data-videos-text" so it always tried to reparse. 
+        if( $li.prop("videos").length===0 ) $li.prop("data-videos-text","");
+    }
 }
 
 function parsePlaylistItem(fld,cb) {
