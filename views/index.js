@@ -929,7 +929,7 @@ function checkVideo(){
         var c=v.list[curCueIndex];
         var endTime=parseFloat((v.list.length>curCueIndex)?v.list[curCueIndex].end:0);
         $("#playlist .selected .progress, .fullscreenMode.progress")
-            .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,videoController.currentTime)}%`);
+            .css("width",`${calcPlayPercentage(videos,videoController)}%`);
         var cuePct=Math.floor((videoController.currentTime-c.start)/(c.end-c.start)*100);
         if( cuePct>100 ) cuePct=100;
         $(`#cue-${curVideoIndex}-${curCueIndex} .progress`)
@@ -957,8 +957,32 @@ function checkVideo(){
     }
 }
 
-function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
-    var sum=0, cueMax;
+/**
+ * Looks at the VideoController and calculates a percentage into the video list.
+ * @param  {array} videos - The videos array for current playlist item.
+ * @param  {VideoController} vc - The active video controller.
+ */
+function calcPlayPercentage(videos,vc) {
+    // Get current/total times
+    var curTime=calcVideosCurrentTime(videos,vc);
+    var totTime=calcVideosTotalTime(videos);
+    // Calculate percentage
+    var pct=parseInt(100*curTime/totTime);
+    // Protect from math gone wild
+    if(pct>100) pct=100; 
+    else if( pct<0 ) pct=0;
+    return pct;
+}
+
+/**
+ * Treating all videos/cues as one lump of video, calculates the current time into that video.
+ * @param  {array} videos - The videos array for current playlist item.
+ * @param  {VideoController} vc - The active video controller.
+ */
+function calcVideosCurrentTime(videos,vc) {
+    var sum=0;
+    var videoIndex=Number(vc.get("data-video-index"));
+    var cueIndex=Number(vc.get("data-cue-index"));
     // Calculate sum of all past videos/cues played so far
     for( var vi=0 ; vi<=videoIndex ; vi++ ) {
         if( videos[vi].isImage() ) {
@@ -967,26 +991,60 @@ function calcPlayPercentage(videos,videoIndex,cueIndex,pos) {
             else sum+=ExternalMedia.IMAGE_DURATION;
         } else {
             // Otherwise, add all the cues lengths for a given video's list
-            cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
-            for( ci=0 ; ci<cueMax ; ci++ )
+            var cueMax=(vi==videoIndex)?cueIndex:videos[vi].list.length;
+            for( var ci=0 ; ci<cueMax ; ci++ )
                 if( videos[vi].list.length>ci )
                     sum+=videos[vi].list[ci].end-videos[vi].list[ci].start;
         }
     }
     // Now add time for the current video
     if( videos[videoIndex].isVideo() && videos[videoIndex].list.length>cueIndex )
-        sum+=pos-videos[videoIndex].list[cueIndex].start;
-    // Figure out total play time
-    var fullPlayLength=0;
-    for( vi=0 ; vi<videos.length ; vi++ ) fullPlayLength+=videos[vi].calcPlayLength();
-    // And calculate percentage
-    var pct=parseInt(100*sum/fullPlayLength);
-    // Protect from math gone wild
-    if(pct>100) pct=100; 
-    else if( pct<0 ) pct=0;
-    return pct;
+        sum+=vc.currentTime-videos[videoIndex].list[cueIndex].start;
+    // Return the answer
+    return sum;
 }
 
+/**
+ * Returns total time of all videos.
+ * @param  {array} videos - The videos array for current playlist item.
+ */
+function calcVideosTotalTime(videos) {
+    var total=0;
+    videos.forEach(video=>total+=video.calcPlayLength());
+    return total;
+}
+
+/**
+ * Receives a desired time and returns the video and cue index to navigate to that time.
+ * @param {array} videos - The videos array for current playlist item.
+ * @param {number} time - The desired time, as if the videos/cues were one lump of video.
+ * @returns {object} - videoIndex, cueIndex, and currentTime
+ */
+function calcVideoIndexFromTime(videos,time) {
+    var video=null, match=false, curTime=0, cueTime=0;
+    for( var vi=0 ; vi<videos.length && ! match ; vi++ ) {
+        video=videos[vi];
+        if( video.isImage() ) {
+            cueTime=ExternalMedia.IMAGE_DURATION;
+            if( time>=curTime && time<=curTime+cueTime ) match=true;
+            else curTime+=cueTime;
+        } else {
+            for( var ci=0 ; ci<video.list.length && ! match ; ci++ ) {
+                let cue=video.list[ci];
+                cueTime=cue.end-cue.start;
+                if( time>=curTime && time<=curTime+cueTime ) match=true;
+                else curTime+=cueTime;
+            }
+        }
+    }
+    vi-=1;
+    ci-=1;
+    if( !match ) {
+        vi=-1;
+        ci=-1;
+    }
+    return {videoIndex:vi, cueIndex:ci, currentTime:time-curTime+(videos[vi].isVideo()?videos[vi].list[ci].start:0)};
+}
 
 function toggleFullscreen(){
     if( $('body').hasClass('fullscreenMode') ) {
@@ -1017,7 +1075,7 @@ function playImage(){
             // Update progress bar
             imageTime+=0.5;
             $("#playlist .selected .progress, .fullscreenMode.progress")
-                .css("width",`${calcPlayPercentage(videos,curVideoIndex,curCueIndex,0)}%`);
+                .css("width",`${calcPlayPercentage(videos,videoController)}%`);
             if( imageTime>=ExternalMedia.IMAGE_DURATION ) {
                 if( videos.length-1>curVideoIndex ) {
                     // If more media, mount next item
@@ -1095,20 +1153,40 @@ function nextVideo(){
         selectPlaylistItem($li.next());
     }
 }
-function rewindVideo(){
-    if( ! $("#videoControls .vidrw").hasClass('disabled') ) {
-        // TODO: Make this intelligent to know to change cue/video index when rewinding 
-        var time=(videoController.currentTime>=RW_SECS)?videoController.currentTime-RW_SECS:0;
-        videoController.currentTime=time;
+
+/**
+ * Seeks the videoController forward/backward the designated amount.
+ * @param  {number} shift - Number of seconds to shift the video.
+ */
+function seekVideo(shift=0){
+    var videoIndex=Number(videoController.get("data-video-index"));
+    var cueIndex=Number(videoController.get("data-cue-index"));
+    var $li=$("#playlist .selected");
+    var videos=$li.prop("videos");
+    // Get the max time and calculate current time + the shift amount
+    var max=calcVideosTotalTime(videos);
+    var time=calcVideosCurrentTime(videos,videoController)+shift;
+    var play=!videoController.paused;
+    // Adjust for min/max times
+    if( time<0 ) time=0;
+    else if( time>max ) time=max;
+    // Calculate the new video/cue index and currentTime
+    var newloc=calcVideoIndexFromTime(videos,time);
+    if( videoIndex==newloc.videoIndex && cueIndex==newloc.cueIndex ) {
+        // If we're just shifting within the same cue, update current time.
+        videoController.currentTime=newloc.currentTime;
+    } else {
+        // Otherwise, mount the new video/cue, then jump to the time.
+        mountPlaylistItem($li,newloc.videoIndex,newloc.cueIndex,play);
+        videoController.currentTime=newloc.currentTime;
     }
+    checkVideo();
+}
+function rewindVideo(){
+    if( ! $("#videoControls .vidrw").hasClass('disabled') ) seekVideo(-1*RW_SECS);
 }
 function fastforwardVideo(){
-    if( ! $("#videoControls .vidff").hasClass('disabled') ) {
-        // TODO: Make this intelligent to know to change cue/video index when fast-forwarding 
-        var time=(videoController.currentTime<videoController.duration-FF_SECS)?videoController.currentTime+FF_SECS:videoController.duration;
-        videoController.currentTime=time;
-        checkVideo();
-    }
+    if( ! $("#videoControls .vidff").hasClass('disabled') ) seekVideo(FF_SECS);
 }
 
 function createPlaylistRow() {
