@@ -66,7 +66,8 @@ class ExternalMedia {
         return sum;
     }
 
-    toString() {return this.displayName}
+    // TODO: Maybe this should be changed to "path" if not indexed, and "filename" if indexed?
+    toString() {return this.filename}
 
 }
 
