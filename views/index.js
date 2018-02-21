@@ -57,30 +57,8 @@ $(document).ready(()=>{
     videopathWatcher=chokidar.watch(videopaths, {awaitWriteFinish:true, ignorePermissionErrors:true, ignoreInitial:true});
     videopathWatcher
         .on('ready', ()=>console.log("Watcher is ready, looking for changes in directories."))
-        .on('add', newpath => {
-            console.log(`${newpath} added.`);
-            rvu.addVideo(newpath);
-            svu.addVideo(newpath);
-            emu.addMedia(newpath);
-            // Find playlist items in err state and re-parse.
-            $("#playlist li.mediaErr").each(function(){
-                $(this).prop("data-videos-text","");
-                parsePlaylistItem($(this).find("input"));
-            });
-        })
-        .on('unlink', oldpath => {
-            console.log(`${oldpath} removed.`);
-            rvu.removeVideo(oldpath);
-            svu.removeVideo(oldpath);
-            emu.removeMedia(oldpath);
-            // Find playlist items that use this video and re-parse.
-            $("#playlist li.valid").each(function(){
-                if( $(this).prop("videos").findIndex(vid=>vid.path==oldpath) >= 0 ) {
-                    $(this).prop("data-videos-text","");
-                    parsePlaylistItem($(this).find("input"));
-                }
-            });
-        });
+        .on('add', handleVideoPathAdd)
+        .on('unlink', handleVideoPathUnlink);
   
     // Wire up listeners
     $(window).keydown(windowKeyHandler);
@@ -98,6 +76,7 @@ $(document).ready(()=>{
     $(".vidplaypause").click(toggleVideo);
     $(".vidrw").click(rewindVideo);
     $(".vidff").click(fastforwardVideo);
+    $("#mnuImportExternalMedia").click(importExternalMedia);
     $("#mnuBrowseExternalMedia").click(browseExternalMedia);
     $("#browseExternalMedia").change(handleBrowseExternalMedia);
     $("#mnuStudy").click(handleStudy);
@@ -459,7 +438,7 @@ function handleTrimVideoLoaded(){
 
 function indexVideos() {
     // Accumulate video paths
-    videopaths=[electron.remote.app.getPath('videos')];
+    videopaths=[electron.remote.app.getPath('videos'),APPDATADIR+'media'];
     if( settings.downloadsPath ) videopaths.push(electron.remote.app.getPath('downloads'));
     if( settings.extraPath.length ) videopaths.push(settings.extraPath);
     // Initialize Webvtt Cache Manager
@@ -647,6 +626,7 @@ function handlePlaylistImport() {
                         var p=APPDATADIR;
                         if( entry.fileName.toLowerCase()!=="playlist.json" ) p+="media"+path.sep;
                         readStream.pipe(fs.createWriteStream(p+entry.fileName));
+                        handleVideoPathAdd(p+entry.fileName);
                     });
                 }
             }).on("end", function(){
@@ -1439,6 +1419,70 @@ function windowKeyHandler(e) {
     }
 }
 
+function handleVideoPathAdd(newpath) {
+    if( ! emu.hasMedia(newpath) ) {
+        console.log(`${newpath} added.`);
+        rvu.addVideo(newpath);
+        svu.addVideo(newpath);
+        emu.addMedia(newpath);
+        // Find playlist items in err state and re-parse.
+        $("#playlist li.mediaErr").each(function(){
+            $(this).prop("data-videos-text","");
+            parsePlaylistItem($(this).find("input"));
+        });
+    }
+}
+function handleVideoPathUnlink(oldpath) {
+    console.log(`${oldpath} removed.`);
+    rvu.removeVideo(oldpath);
+    svu.removeVideo(oldpath);
+    emu.removeMedia(oldpath);
+    // Find playlist items that use this video and re-parse.
+    $("#playlist li.valid").each(function(){
+        if( $(this).prop("videos").findIndex(vid=>vid.path==oldpath) >= 0 ) {
+            $(this).prop("data-videos-text","");
+            parsePlaylistItem($(this).find("input"));
+        }
+    });
+}
+
+function importExternalMedia() {
+    electron.remote.dialog.showOpenDialog(main.win,{
+        title: "Import External Media",
+        buttonLabel: "Import",
+        message: "Please choose media to import into the playlist.",
+        filters: [
+            {name:'All acceptable types', extensions: ExternalMedia.ALLEXT.map(ext=>ext.substr(1))},
+            {name:'Images', extensions: ExternalMedia.IMAGEEXT.map(ext=>ext.substr(1))},
+            {name:'Videos', extensions: ExternalMedia.VIDEOEXT.map(ext=>ext.substr(1))}
+        ]
+    }, function(paths){
+        if( !paths ) return;
+        // Start UI for import
+        progressDialog.dialog("open");
+        // Start forming an array that will track the new text for the impacted playlist item
+        var newtext=[];
+        // TODO: IMPORTANT. Needs to handle source="media" items differently. 
+        var $input=$("#playlist li.selected input");
+        var text=$input.val().trim();
+        if( text.length ) newtext.push(text);
+        // Add each path
+        paths.forEach((p,i)=>{
+            progressBar.progressbar("value",i/paths.length);
+            // Copy the file into internal media directory, and add to the path index manually
+            // because we don't have time to wait for the watcher to find it.
+            let filename=path.basename(p);
+            let newpath=path.join(APPDATADIR+"media",filename);
+            fs.copySync(p,newpath);
+            handleVideoPathAdd(newpath);
+            newtext.push(filename);
+        });
+        // Update UI
+        progressBar.progressbar("value",100);
+        progressDialog.dialog("close");
+        $input.val(newtext.join("; ")).focus().trigger("keyup");
+    });
+}
 function browseExternalMedia() {
     // Just trigger a click of the input[type=file] form element
     $("#browseExternalMedia").trigger("click");
@@ -1449,6 +1493,7 @@ function handleBrowseExternalMedia(evt) {
         // Append this to the existing value of selected input
         var $input=$("#playlist li.selected input");
         var data=[];
+        // TODO: IMPORTANT. Needs to handle source="media" items differently. 
         var text=$input.val().trim();
         if( text.length ) data.push(text);
         for( var i=0 ; i<this.files.length ; i++ ) data.push(this.files[i].path);
