@@ -101,12 +101,15 @@ class ExternalMediaUtil {
             this.media.push(newpath);
     }
     addVideo(newpath) {addMedia(newpath)}
-
     removeMedia(oldpath) {
-        if( this.media.includes(oldpath) )
+        if( this.hasMedia(oldpath) )
             this.media=this.media.filter(item=>item!==oldpath);
     }
     removeVideo(oldpath) {removeMedia(oldpath)}
+    hasMedia(somepath) {
+        return this.media.includes(somepath);
+    }
+    hasVideo(somepath) {return this.hasMedia(somepath)}
 
     /*
      *  getPathRegEx: Takes the simpler PATH_REGEX constant and subs out the EXTENSIONS

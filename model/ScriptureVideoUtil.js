@@ -117,10 +117,12 @@ class ScriptureVideoUtil {
         if( ScriptureVideoUtil.VIDEOEXT.includes(ext) ) 
             this.videos.push(newpath);
     }
-
     removeVideo(oldpath) {
-        if( this.videos.includes(oldpath) )
+        if( this.hasVideo(oldpath) )
             this.videos=this.videos.filter(item=>item!==oldpath);
+    }
+    hasVideo(somepath) {
+        return this.videos.includes(somepath);
     }
 
 }
