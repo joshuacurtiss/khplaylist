@@ -1462,8 +1462,14 @@ function importExternalMedia() {
         progressDialog.dialog("open");
         // Start forming an array that will track the new text for the impacted playlist item
         var newtext=[];
-        // TODO: IMPORTANT. Needs to handle source="media" items differently. 
-        var $input=$("#playlist li.selected input");
+        var $li=$("#playlist li.selected");
+        // If source is "media", then insert a new row
+        if( $li.prop("data-source")=="media" ) {
+            prependPlaylistRow($li);
+            prevVideo();
+            $li=$("#playlist li.selected");
+        }
+        var $input=$li.find("input");
         var text=$input.val().trim();
         if( text.length ) newtext.push(text);
         // Add each path
@@ -1490,10 +1496,16 @@ function browseExternalMedia() {
 function handleBrowseExternalMedia(evt) {
     // Only proceed if a file was passed in
     if( this.files.length ) {
+        var $li=$("#playlist li.selected");
+        // If source is "media", then insert a new row
+        if( $li.prop("data-source")=="media" ) {
+            prependPlaylistRow($li);
+            prevVideo();
+            $li=$("#playlist li.selected");
+        }
         // Append this to the existing value of selected input
-        var $input=$("#playlist li.selected input");
+        var $input=$li.find("input");
         var data=[];
-        // TODO: IMPORTANT. Needs to handle source="media" items differently. 
         var text=$input.val().trim();
         if( text.length ) data.push(text);
         for( var i=0 ; i<this.files.length ; i++ ) data.push(this.files[i].path);
