@@ -16,8 +16,8 @@ with installing the app.
 
 Latest version available here: 
 
-  * Mac: [KH-Playlist-1.1.0.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.1.0/KH-Playlist-1.1.0.dmg)
-  * Windows: [KH-Playlist-Setup-1.1.0.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.1.0/KH-Playlist-Setup-1.1.0.exe)
+  * Mac: [KH-Playlist-1.2.0.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.0/KH-Playlist-1.2.0.dmg)
+  * Windows: [KH-Playlist-Setup-1.2.0.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.0/KH-Playlist-Setup-1.2.0.exe)
 
 [Download older releases](https://github.com/joshuacurtiss/khplaylist/releases)
 
@@ -40,7 +40,7 @@ John 17:3; Rev 24:14
 
 Publications can feel a little more tricky but the playlist does a decent job at finding what you're asking for, and it will always work with formal publication reference formatting. For instance: 
 
-`bhs 5:4` is the formal reference to "What Can the Bible Teach Us?" chapter 5, par 4.  
+`bhs 5:4` is the formal reference to "What Can the Bible Teach Us?" ch 5, par 4.  
 `Teach Us ch5 par 4` will successfully convert to `bhs 5:4`.  
 `Teach Us 5:4` will also successfully convert to `bhs 5:4`. 
 
