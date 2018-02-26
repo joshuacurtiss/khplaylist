@@ -30,24 +30,20 @@ To start using it, click on the playlist line and just start typing naturally. T
 
 For instance, all of these are valid examples of how to enter scriptures:
 
-```
-Gen 3:15
-Genesis 3:15
-John 1:1; 17:3
-Matt 24:14, 36-39
-John 17:3; Rev 24:14
-```
+* Gen 3:15
+* Genesis 3:15
+* John 1:1; 17:3
+* Matt 24:14, 36-39
+* John 17:3; Rev 24:14
 
 Publications can feel a little more tricky but the playlist does a decent job at finding what you're asking for, and it will always work with formal publication reference formatting. For instance: 
 
-`bhs 5:4` is the formal reference to "What Can the Bible Teach Us?" ch 5, par 4.  
-`Teach Us ch5 par 4` will successfully convert to `bhs 5:4`.  
-`Teach Us 5:4` will also successfully convert to `bhs 5:4`. 
-
-`w17.04 3:1` is the formal reference to Watchtower #4, article 3, par 1. 
-
-`sn 3` is the formal reference to "Sing to Jehovah" song #3.  
-`song 3` will also find `sn 3`.  
-`Sing to Jehovah 3` will also find `sn 3`. 
+* "bhs 5:4" is the formal reference to *"What Can the Bible Teach Us?" ch 5, par 4*.  
+* "Teach Us ch5 par 4" will successfully convert to *bhs 5:4*.  
+* "Teach Us 5:4" will also successfully convert to *bhs 5:4*. 
+* "w17.04 3:1" is the formal reference to *Watchtower #4, article 3, par 1*. 
+* "sn 3" is the formal reference to *"Sing to Jehovah" song #3*.  
+* "song 3" will also find *sn 3*.  
+* "Sing to Jehovah 3" will also find *sn 3*. 
 
 These are just some examples demonstrating the flexibility of the playlist.
