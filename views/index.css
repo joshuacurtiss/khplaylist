@@ -273,6 +273,9 @@ body.playlistMode #videoControls {
     margin-top: -0.1vh;
     width: 0.7em;
 }
+#trimDialog {
+    overflow: hidden;
+}
 #trimDialog label {
     width: 26%;
     display: inline-block;
