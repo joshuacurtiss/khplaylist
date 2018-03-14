@@ -4,6 +4,7 @@ body {
     background-color: black;
     font-family: Calibri, 'Trebuchet MS', 'Gill Sans', 'Gill Sans MT', sans-serif;
     color: #eee;
+    overflow: hidden;
 }
 
 video {
