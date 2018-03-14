@@ -23,7 +23,15 @@ class VideoController {
     }
 
     set text(text) {
+        this.textElem.style.visibility="hidden";
+        this.textElem.style.zIndex="-99";
         this.textElem.innerHTML=text;
+        // Wait for next tick to give video element time to resize. This ensures more accurate text placement.
+        setTimeout(()=>{
+            if( text.length ) this.textElem.style.top=(this.video.offsetHeight*.46-this.textElem.offsetHeight/2)+"px";
+            this.textElem.style.visibility=text.length?"visible":"hidden";
+            this.textElem.style.zIndex=text.length?"999":"-99";
+        },0);
         if( this.secondWin ) 
             this.secondWin.webContents.executeJavaScript(`videoController.text=\`${text}\``);
     }

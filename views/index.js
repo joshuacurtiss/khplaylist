@@ -845,7 +845,6 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
     if( item ) {
         pauseVideo();
         console.log(`Mounting video #${videoIndex} "${item.displayName}" cue #${cueIndex}.`);
-        $("#text").hide();
         videoController.text="";
         videoController.set("data-video-index",videoIndex);
         $("#videoCueList i.fa")
@@ -882,7 +881,6 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
         videoController.set("data-video-index",-1);
         videoController.set("data-cue-index",-1);
         videoController.text=key;
-        $("#text").css("line-height",$(videoController.video).css("height")).show();
     }
     checkControls();
 }
@@ -1032,6 +1030,8 @@ function toggleFullscreen(){
     } else {
         $('body').removeClass('playlistMode').addClass('fullscreenMode');
     }
+    // Force the text to recalibrate to screen:
+    videoController.text=videoController.text;
 }
 
 function checkControls() {

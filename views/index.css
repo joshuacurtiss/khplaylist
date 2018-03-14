@@ -15,6 +15,9 @@ video {
 
 #text {
     position: absolute;
+    left:0;
+    right:0;
+    padding:0 4%;
     text-align: center;
 }
 
@@ -103,12 +106,7 @@ body.fullscreenMode .playlistMode {display:none;}
 body.fullscreenMode .ui {opacity:0;}
 
 body.fullscreenMode #text {
-    left: 4vw;
-    top: 0;
-    bottom: 0;
-    width: 92vw;
     font-size: 8vh;
-    line-height: 92vh !important;
 }
 
 body.fullscreenMode video {
@@ -148,11 +146,6 @@ body.splashMode .playlistMode
 {display:none;}
 
 body.playlistMode #text {
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
-    padding:0 10%;
     font-size: 2.5vh;
 }
 
