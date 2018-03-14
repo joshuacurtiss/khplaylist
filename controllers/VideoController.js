@@ -23,6 +23,7 @@ class VideoController {
     }
 
     set text(text) {
+        // Always hide initially while we readjust
         this.textElem.style.visibility="hidden";
         this.textElem.style.zIndex="-99";
         this.textElem.innerHTML=text;
