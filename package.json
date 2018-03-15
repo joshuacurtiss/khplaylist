@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "@claviska/jquery-dropdown": "soundasleep/jquery-dropdown",
-    "chokidar": "^1.7.0",
+    "chokidar": "^2.0.2",
     "escape-string-regexp": "^1.0.5",
     "ffbinaries": "^1.0.8",
     "font-awesome": "^4.7.0",
