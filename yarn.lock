@@ -391,9 +391,9 @@ ci-info@^1.0.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.1.2.tgz#03561259db48d0474c8bdc90f5b47b068b6bbfb4"
 
-clarg@0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/clarg/-/clarg-0.0.3.tgz#a2d0f56dd76652f227168ab9e02ecc34f2d97553"
+clarg@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/clarg/-/clarg-0.0.4.tgz#708ffb5ec352226a6dc5871c374daca8c871ff6d"
 
 cli-boxes@^1.0.0:
   version "1.0.0"
@@ -790,14 +790,14 @@ fd-slicer@~1.0.1:
   dependencies:
     pend "~1.2.0"
 
-ffbinaries@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/ffbinaries/-/ffbinaries-1.0.3.tgz#31904bb01626c363f82f0b03d61d795fe660584a"
+ffbinaries@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/ffbinaries/-/ffbinaries-1.0.8.tgz#0113139684e1a139390fc0bc020d1eed1a7acf9c"
   dependencies:
     async "^2.5.0"
-    clarg "0.0.3"
+    clarg "0.0.4"
     extract-zip "^1.6.5"
-    fs-extra "^4.0.2"
+    fs-extra "^5.0.0"
     lodash "^4.17.4"
     request "^2.83.0"
 
@@ -887,7 +887,7 @@ fs-extra@^1.0.0:
     jsonfile "^2.1.0"
     klaw "^1.0.0"
 
-fs-extra@^4.0.1, fs-extra@^4.0.2:
+fs-extra@^4.0.1:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-4.0.3.tgz#0d852122e5bc5beb453fb028e9c0c9bf36340c94"
   dependencies:
