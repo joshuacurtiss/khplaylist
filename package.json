@@ -66,7 +66,7 @@
     "progress-stream": "^2.0.0",
     "scripture": "joshuacurtiss/scripture#1.0.0",
     "string-hash": "^1.1.3",
-    "theoreference": "joshuacurtiss/theoreference#fdd034c243b10f287b66a1cdff2650828c29e0b4",
+    "theoreference": "joshuacurtiss/theoreference#747d7e9e58700a5772e4dd13bad1d4812486355c",
     "webvtt": "joshuacurtiss/webvtt#1.2.2",
     "yauzl": "^2.9.1",
     "yazl": "^2.4.3"
