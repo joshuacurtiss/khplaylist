@@ -16,8 +16,8 @@ with installing the app.
 
 Latest version available here: 
 
-  * Mac: [KH-Playlist-1.2.0.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.0/KH-Playlist-1.2.0.dmg)
-  * Windows: [KH-Playlist-Setup-1.2.0.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.0/KH-Playlist-Setup-1.2.0.exe)
+  * Mac: [KH-Playlist-1.2.1.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-1.2.1.dmg)
+  * Windows: [KH-Playlist-Setup-1.2.1.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-Setup-1.2.1.exe)
 
 [Download older releases](https://github.com/joshuacurtiss/khplaylist/releases)
 
