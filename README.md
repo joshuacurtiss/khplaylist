@@ -14,12 +14,14 @@ This application isn't signed. That just means your computer will warn you that
 the app is from an "Unknown Publisher". You can bypass the warning and proceed
 with installing the app.
 
-Latest version available here: 
+Latest stable release available here: 
 
   * Mac: [KH-Playlist-1.2.1.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-1.2.1.dmg)
   * Windows: [KH-Playlist-Setup-1.2.1.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-Setup-1.2.1.exe)
 
-[Download older releases](https://github.com/joshuacurtiss/khplaylist/releases)
+[Download older stable releases](https://github.com/joshuacurtiss/khplaylist/releases)
+
+Want to play with the latest beta release? *Be aware that the beta release has new features that aren't finished yet and may crash or not work right.* This beta version adds a "Publication Lookup" dialog. Download them here: [KH-Playlist-1.3.0-b1.dmg](https://1drv.ms/u/s!AgYIn5lxpQaN4B2ymmFl43IwE4HN) (Mac) and [KH-Playlist-Setup-1.3.0-b1.exe](https://1drv.ms/u/s!AgYIn5lxpQaN4B6PERtKUuX980OI) (Windows). 
 
 
 ## Give me more info on using this thing! ##
