@@ -76,6 +76,7 @@ $(document).ready(()=>{
     $(".vidplaypause").click(toggleVideo);
     $(".vidrw").click(rewindVideo);
     $(".vidff").click(fastforwardVideo);
+    $("#mnuBrowsePubs").click(handlePub);
     $("#mnuImportExternalMedia").click(importExternalMedia);
     $("#mnuBrowseExternalMedia").click(browseExternalMedia);
     $("#browseExternalMedia").change(handleBrowseExternalMedia);
@@ -126,21 +127,19 @@ $(document).ready(()=>{
                     settingsDialog.dialog("close");
                 }
             }
-        ],
-        open: function() {
-            $("#mode").val(settings.mode);
-            $("#secondDisplay").prop("checked",settings.secondDisplay);
-            $("#downloadsPath").prop("checked",settings.downloadsPath);
-            $("#extraPath").val(settings.extraPath);
-            var cacheModeHtml="";
-            Object.values(WebvttCacheManager.CACHEMODES).forEach(cachemode=>cacheModeHtml+=`<option value="${cachemode.id}">${cachemode.name}</option>`)
-            $("#cacheMode")
-                .html(cacheModeHtml)
-                .val(settings.cacheMode);
-            handleCacheMode();
-        }
+        ]
     });
     function handleSettings(){
+        $("#mode").val(settings.mode);
+        $("#secondDisplay").prop("checked",settings.secondDisplay);
+        $("#downloadsPath").prop("checked",settings.downloadsPath);
+        $("#extraPath").val(settings.extraPath);
+        var cacheModeHtml="";
+        Object.values(WebvttCacheManager.CACHEMODES).forEach(cachemode=>cacheModeHtml+=`<option value="${cachemode.id}">${cachemode.name}</option>`)
+        $("#cacheMode")
+            .html(cacheModeHtml)
+            .val(settings.cacheMode);
+        handleCacheMode();
         settingsDialog.dialog("open");
     }
     function handleSettingsSave(){
@@ -180,6 +179,163 @@ $(document).ready(()=>{
             cachemgr.purgeWebvttFiles();
         }
     }
+    
+    // Publication Lookup Dialog
+    pubDialog=$( "#pubDialog" ).dialog({
+        autoOpen: false,
+        resizable: false,
+        height: $(window).height() * 0.8,
+        width: $(window).width() * 0.8,
+        modal: true,
+        buttons: [
+            {
+                id: "pubSave",
+                text: "Add",
+                click: handlePubSave
+            },
+            {
+                id: "pubCancel",
+                text: "Cancel",
+                click: function() {
+                    pubDialog.dialog("close");
+                }
+            }
+        ]
+    });
+    // Set up the selectables in the cue list
+    $("#pubDialog .cues.list").selectable({
+        selecting: function(e, ui) {
+            // Allow shift-click for multi-select
+            var curr=$(ui.selecting.tagName,e.target).index(ui.selecting);
+            if(e.shiftKey && prev > -1) {
+                $(ui.selecting.tagName,e.target).slice(Math.min(prev,curr), 1+Math.max(prev,curr)).addClass('ui-selected');
+                prev = -1;
+            } else {
+                prev = curr;
+            }
+        }
+    });
+    function handlePub() {
+        // Pause video if it's going
+        if( ! videoController.paused ) videoController.pause();
+        // Populate publications
+        $("#pubDialog .publications").html(rvu.findAvailablePublications(ReferenceUtil.PUBLICATIONS).map(pub=>{
+            return `<div data-id='${pub.symbol}'>${pub.name}</div>`;
+        }).join(""));
+        $("#pubDialog .publications div").click(handlePubClick);
+        $("#pubDialog .chapters, #pubDialog .cues").html("");
+        // Open the dialog
+        pubDialog.dialog("open");
+    }
+    function handlePubClick() {
+        // If it is not selected currently, handle a click event
+        if( ! $(this).hasClass("ui-selected") ) {
+            // Find the pub
+            var symbol=$(this).attr("data-id");
+            var pub=ru.getPublicationBySymbol(symbol);
+            // TODO: Needs to handle date-based publications
+            if( pub.hasDates ) {
+                console.log("Has dates!");
+                return;
+            }
+            // Find the chapters for this pub and populate the chapter list
+            var chapters=rvu.findAvailableChapters(pub);
+            $("#pubDialog .chapters").html(chapters.map(chapter=>{
+                return `<div data-id='${chapter}'>${chapter}</div>`;
+            }).join(""));
+            // Select this pub in the UI. And only one selection at a time
+            $(this)
+                .siblings().removeClass("ui-selected").end()
+                .addClass("ui-selected");
+            // Wire up click handlers for the chapters
+            $("#pubDialog .chapters div").click(handleChapterClick);
+            // Clear cues since no chapter selected
+            $("#pubDialog .cues").html("");
+            // Now that everything is set up, auto-click the chapter if there's only one
+            if( chapters.length===1 ) $("#pubDialog .chapters div:first").click();
+        }
+    }
+    function handleChapterClick() {
+        // Generate a reference with the symbol/chapter, and use the reference video object to get the cues
+        var symbol=$("#pubDialog .publications .ui-selected").attr("data-id");
+        var chapter=$(this).attr("data-id");
+        var ref=ru.parseReferences(symbol+chapter)[0];
+        rvu.createVideo(ref,(err,refvid)=>{
+            if( ! err ) {
+                // Grab all the cues from the video webvtt data.
+                $("#pubDialog .cues").html(refvid.webvtt.data.map(cue=>{
+                    // The entire cue object is serialized as JSON and then Base64 encoded as data in the div
+                    return `<div data-cue='${btoa(JSON.stringify(cue))}'>${cue.content}</div>`;
+                }).join(""));
+            } else {
+                console.error(err);
+            }
+        });
+        // Only one chapter can be selected. Update UI.
+        $(this)
+            .siblings().removeClass("ui-selected").end()
+            .addClass("ui-selected");
+    }
+    function handlePubSave() {
+        // Retrieve symbol, chapter, and cues
+        var symbol=$("#pubDialog .publications .ui-selected").attr("data-id");
+        var chapter=$("#pubDialog .chapters .ui-selected").attr("data-id");
+        var selectedCues=$("#pubDialog .cues .ui-selected").toArray().map(elem=>{
+            // Decode the Base64 JSON objects for the cues
+            var cue=JSON.parse(atob($(elem).attr("data-cue")));
+            cue.min=cue.start;
+            cue.max=cue.end;
+            return cue;
+        });
+        // Loop thru selected cues and compress them to have cues that represent ranges.
+        // For instance: Cues 1, 2, 3, 5 would become 1-3, 5
+        var cues=[];
+        for( var cue of selectedCues ) {
+            let lastCue=cues.length?cues[cues.length-1]:null;
+            if( lastCue && Number(lastCue.id)+1==Number(cue.id) ) {
+                var contents=lastCue.content.split("-");
+                contents[1]=cue.content;
+                lastCue.content=contents.join("-");
+                lastCue.id=cue.id;
+                lastCue.end=cue.end;
+                lastCue.max=cue.max;
+            } else {
+                cues.push(cue);
+            }
+        }
+        // Now make an object that matches what we save in the playlist, and use loadPLaylistRow() to generate the row
+        var $li=$("#playlist .selected");
+        var videos=$li.prop("videos");
+        var cueString=cues.map(cue=>cue.content).join(", ");
+        // When making the source text, tack on to existing source text if there is any.
+        var source=$li.find("input").val();
+        var thisSource=`${symbol} ${chapter}:${cueString}`;
+        source+=`${source.length>0?";":""} ${thisSource}`.trim();
+        var defs={
+            source: "media",
+            text: source,
+            // For any existing videos, put them in the object
+            media: videos.map(video=>{
+                return {
+                    displayName: video.displayName,
+                    source: video.source,
+                    list: video.list
+                };
+            })
+        }
+        // Now add the media definition for this new publication reference to the definitions
+        defs.media.push({
+            displayName: thisSource,
+            source: thisSource,
+            list: cues
+        });
+        // Finally, pass the definitions to loadPlaylistRow()
+        loadPlaylistRow($li,defs,()=>{
+            // Mount the playlist row after loading the new pub 
+            mountPlaylistItem($li);
+        });
+        $("#pubDialog").dialog("close");
+    }
   
     // Batch Entry Dialog
     batchEntryDialog=$( "#batchEntryDialog" ).dialog({
@@ -200,17 +356,15 @@ $(document).ready(()=>{
                     batchEntryDialog.dialog("close");
                 }
             }
-        ],
-        open: function() {
-            $("#batchEntryDialog textarea").val("");
-            parseBatchEntryTextarea();
-        }
+        ]
       });
       $("#batchEntryDialog textarea").keyup(function(){
         clearTimeout(batchEntryTimeout);
         batchEntryTimeout=setTimeout(parseBatchEntryTextarea,800);
     });
     function handleBatchEntry(){
+        $("#batchEntryDialog textarea").val("");
+        parseBatchEntryTextarea();
         batchEntryDialog.dialog("open");
     }
     function handleBatchEntryAdd(){
@@ -251,32 +405,30 @@ $(document).ready(()=>{
                     studyDialog.dialog("close");
                 }
             }
-        ],
-        open: function() {
-            $("#studyText").val("");
-            parseStudyText();
-        }
-      });
-      $("#studyDialog input").keyup(function(){
+        ]
+    });
+    $("#studyDialog input").keyup(function(){
         clearTimeout(studyTimeout);
         studyTimeout=setTimeout(parseStudyText,800);
-      });
-      function handleStudy(){
-          studyDialog.dialog("open");
-      }
-      function handleStudyAdd(){
-          studyDialog.dialog("close");
-          var $li=$("#playlist .selected");
-          $("#studyDialog ul li").each((index,elem)=>{
-              let txt=$(elem).text();
-              let $input=$li.find("input");
-              if( $input.val().length ) {
-                  prependPlaylistRow($li);
-                  $li=$li.prev();
-                  $input=$li.find("input");
-              }
-              $input.val(txt);
-              parsePlaylistItem($input,function (err,$li){
+    });
+    function handleStudy(){
+        $("#studyText").val("");
+        parseStudyText();
+        studyDialog.dialog("open");
+    }
+    function handleStudyAdd(){
+        studyDialog.dialog("close");
+        var $li=$("#playlist .selected");
+        $("#studyDialog ul li").each((index,elem)=>{
+            let txt=$(elem).text();
+            let $input=$li.find("input");
+            if( $input.val().length ) {
+                prependPlaylistRow($li);
+                $li=$li.prev();
+                $input=$li.find("input");
+            }
+            $input.val(txt);
+            parsePlaylistItem($input,function (err,$li){
                 if( $li ) {
                     let videos=$li.prop("videos");
                     if( videos.length==1 ) {
@@ -290,11 +442,11 @@ $(document).ready(()=>{
                         } 
                     }
                 }
-              });
-              if( $li.is(':last-child') ) appendPlaylistRow($li);
-              $li=$li.next();
-          });
-      }
+            });
+            if( $li.is(':last-child') ) appendPlaylistRow($li);
+            $li=$li.next();
+        });
+    }
 
     // Trim Dialog
     trimDialog=$( "#trimDialog" ).dialog({
@@ -669,9 +821,9 @@ function loadPlaylist() {
     }
 }
 
-function loadPlaylistRow($li,item) {
-    // Immediately add a row after this one, since we're using this one.
-    appendPlaylistRow($li);
+function loadPlaylistRow($li,item,cb) {
+    // Add a row after this one, if its the last one, since we're using this one.
+    if( $li.is(":last-child") ) appendPlaylistRow($li);
     var $input=$li.find("input");
     if( item.source===undefined ) item.source="text";
     if( item.text===undefined ) item.text="";
@@ -720,8 +872,8 @@ function loadPlaylistRow($li,item) {
                         }
                         // Add to list of videos
                         videos[itemIndex]=thisvid;
-                        // Once we've processed all videos, update the playlist row UI.
-                        if( videos.every(v=>v!==null) ) {
+                        // Once we've processed all videos (array is full), update the playlist row UI.
+                        if( videos.filter(v=>v!==undefined).length === item[item.source].length ) {
                             $li .removeClass(PLAYLISTITEM_CLASSES).addClass(className)
                                 .prop("videos",videos)
                                 .prop("data-source",item.source)
@@ -729,6 +881,8 @@ function loadPlaylistRow($li,item) {
                                 .find(".tag").text(tagText).attr("title",tagHint).end()
                                 .find("input").val(item.text).end();
                             if( item.source!="text" ) $li.find("input").attr("readonly","");
+                            // Execute callback if one exists
+                            if( cb ) cb();
                         }
                     });
                 }

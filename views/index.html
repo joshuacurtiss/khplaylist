@@ -92,6 +92,26 @@
         </form>
         <ul></ul>
     </div>
+    <div id="pubDialog" class="dialog" title="Publication Lookup">
+        <p>
+            Select a publication, chapter, and cue.
+            <strong>NOTE:</strong> Date-based publications like Watchtower or Meeting Workbook are not yet available in this list.
+        </p>
+        <form>
+            <div class="publicationContainer">
+                <h3>Publication</h3>
+                <div class="publications list"></div>
+            </div>
+            <div class="chapterContainer">
+                <h3>Chapter</h3>
+                <div class="chapters list"></div>
+            </div>
+            <div class="cueContainer">
+                <h3>Cue</h3>
+                <div class="cues list"></div>
+            </div>
+        </form>
+    </div>
     <div id="trimDialog" class="dialog" title="Trim Clip">
         <form>
             <video id="trimVideo"></video>
@@ -146,6 +166,7 @@
     </div>
     <div id="dropdown" class="jq-dropdown jq-dropdown-tip jq-dropdown-anchor-right">
         <ul class="jq-dropdown-menu">
+            <li><a id="mnuBrowsePubs" href="#">Browse publications…</a></li>
             <li><a id="mnuBrowseExternalMedia" href="#">Browse external media…</a></li>
             <li><a id="mnuImportExternalMedia" href="#">Import external media…</a></li>
             <li><a id="mnuStudy" href="#">Study materials…</a></li>

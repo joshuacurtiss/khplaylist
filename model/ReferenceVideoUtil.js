@@ -134,6 +134,63 @@ class ReferenceVideoUtil {
         }
     }
 
+    /*
+     *  findAvailablePublications: Return an array of publications that are 
+     *  available in the videos index.
+     */
+    findAvailablePublications(pubs) {
+        var baseFileRegex=
+            escapeStringRegexp(path.sep)+
+            "([a-z0-9\\-]+)_"+ // Symbol
+            "\\w+_"+
+            "(\\d+_)?"+ // Date
+            "\\d+_"+ // Chapter
+            "r\\d{3}p\\.\\w{3}";
+        var videoRegex=new RegExp(baseFileRegex+"$","i");
+        var symbols=this.videos.filter(video=>{
+            return videoRegex.test(video);
+        }).map(video=>{
+            return video.match(videoRegex)[1].toLowerCase();
+        }).filter(function(elem, index, self) {
+            return index===self.indexOf(elem);
+        });
+        return pubs.filter(pub=>{
+            // TODO: Eventually include date-based publications
+            return symbols.includes(pub.symbol.toLowerCase()) && pub.hasDates===false;
+        }).sort((a,b)=>{
+            // Case-insensitive and exclude non-alphanumeric characters
+            var aname=a.name.toLowerCase().replace(/[^a-z0-9]/,"");
+            var bname=b.name.toLowerCase().replace(/[^a-z0-9]/,"");
+            return aname.localeCompare(bname);
+        });
+    }
+
+    /*
+     *  findAvailableChapters: Return an array of chapters that are available
+     *  in the videos index for the given publication.
+     * 
+     */
+    findAvailableChapters(pub) {
+        var date=pub.date;
+        var datemask="YYYYMM"+(pub.isOldWatchtower()?"DD":"");
+        var baseFileRegex=
+            escapeStringRegexp(path.sep)+
+            pub.symbol+"_"+ // Symbol
+            "\\w+_"+
+            (pub.hasDates?(date?`${date.format(datemask)}_`:``):``)+ // Date
+            "(\\d+)_"+ // Chapter
+            "r\\d{3}p\\.\\w{3}";
+        var videoRegex=new RegExp(baseFileRegex+"$","i");
+        var videoFiles=this.videos.filter(video=>videoRegex.test(video));
+        return videoFiles.map(video=>{
+            return video.match(videoRegex)[1];
+        }).sort().filter((item,pos,ary)=>{
+            return !pos || item != ary[pos-1];
+        }).map(chapter=>{
+            return Number(chapter);
+        });
+}
+
     addVideo(newpath) {
         var ext=path.extname(newpath).toLowerCase();
         if( ReferenceVideoUtil.VIDEOEXT.includes(ext) ) 

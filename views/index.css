@@ -523,3 +523,52 @@ div {user-select: none;}
 #studyDialog input {
     width: 99%;
 }
+.publicationContainer {
+    width: 45%;
+    float: left;
+}
+.chapterContainer {
+    width: 20%;
+    float: left;
+    margin: 0 2%;
+}
+.cueContainer {
+    width: 30%;
+    float: left;
+}
+#pubDialog h3, #pubDialog p, #pubDialog div {
+    cursor: default;
+}
+#pubDialog h3 {
+    font-size: 2vh;
+    background-color: #383838;
+    color: white;
+    padding: 5px 8px;
+    margin: 0;
+    border-radius: 5px 5px 0 0;
+}
+.list {
+    padding: 0 5px;
+    border: 1px solid #383838;
+    border-radius: 0 0 5px 5px;
+    height: 48vh;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+.list div {
+    border-radius: 3px;
+    border: 1px solid #999;
+    padding: 2px 4px;
+    margin: 4px 0;
+    cursor: pointer !important;
+}
+.list .ui-selecting {
+    border: 1px solid #4a4a4a;
+    background-color: #4a4a4a;
+    color: #ddd;
+}
+.list .ui-selected {
+    border: 1px solid #383838;
+    background-color: #383838;
+    color: white;
+}
