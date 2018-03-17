@@ -200,7 +200,12 @@ $(document).ready(()=>{
                     pubDialog.dialog("close");
                 }
             }
-        ]
+        ],
+        open: function(){
+            // Set the lists height based on their surrounding elements. Must be done on the open event.
+            var height=$("#pubDialog").height()-$("#pubDialog h3").outerHeight(true)-$("#pubDialog p").outerHeight(true)-5;
+            $("#pubDialog .list").height(height+"px");
+        }
     });
     // Set up the selectables in the cue list
     $("#pubDialog .cues.list").selectable({
@@ -518,6 +523,10 @@ $(document).ready(()=>{
         $('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode);
         selectFirstItem();
         checkSecondDisplay();
+
+        //debug
+        handlePub();
+
     },1500);
 
     // Done!
