@@ -308,12 +308,13 @@ $(document).ready(()=>{
         var videos=$li.prop("videos");
         var cueString=cues.map(cue=>cue.content).join(", ");
         // When making the source text, tack on to existing source text if there is any.
-        var source=$li.find("input").val();
-        var thisSource=`${symbol} ${chapter}:${cueString}`;
-        source+=`${source.length>0?";":""} ${thisSource}`.trim();
+        var source="media";
+        var text=$li.find("input").val();
+        var thisDisplayName=`${symbol} ${chapter}:${cueString}`;
+        var thisSource=`${symbol} ${chapter}`;
+        text+=`${text.length>0?";":""} ${thisDisplayName}`.trim();
         var defs={
-            source: "media",
-            text: source,
+            source, text,
             // For any existing videos, put them in the object
             media: videos.map(video=>{
                 return {
@@ -325,7 +326,7 @@ $(document).ready(()=>{
         }
         // Now add the media definition for this new publication reference to the definitions
         defs.media.push({
-            displayName: thisSource,
+            displayName: thisDisplayName,
             source: thisSource,
             list: cues
         });
