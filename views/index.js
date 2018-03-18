@@ -537,10 +537,6 @@ $(document).ready(()=>{
         $('body').removeClass('fullscreenMode playlistMode splashMode').addClass(settings.mode);
         selectFirstItem();
         checkSecondDisplay();
-
-        //debug
-        handlePub();
-
     },1500);
 
     // Done!
