@@ -555,12 +555,29 @@ div {user-select: none;}
     overflow-x: hidden;
     overflow-y: scroll;
 }
-.list div {
+.list > div {
     border-radius: 3px;
     border: 1px solid #999;
-    padding: 2px 4px;
     margin: 4px 0;
+}
+.list div div {
     cursor: pointer !important;
+    padding: 2px 4px;
+}
+.list .sym {
+    float: left;
+    width: 13%;
+    background-color: rgba(241, 136, 136, 0.28);
+    text-align: center;
+}
+.list .ui-selected .sym {
+    background-color: #383838;
+}
+.list .name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 8px;
 }
 .list .ui-selecting {
     border: 1px solid #4a4a4a;

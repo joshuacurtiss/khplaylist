@@ -209,6 +209,7 @@ $(document).ready(()=>{
     });
     // Set up the selectables in the cue list
     $("#pubDialog .cues.list").selectable({
+        filter: ".cue",
         selecting: function(e, ui) {
             // Allow shift-click for multi-select
             var curr=$(ui.selecting.tagName,e.target).index(ui.selecting);
@@ -225,9 +226,14 @@ $(document).ready(()=>{
         if( ! videoController.paused ) videoController.pause();
         // Populate publications
         $("#pubDialog .publications").html(rvu.findAvailablePublications(ReferenceUtil.PUBLICATIONS).map(pub=>{
-            return `<div data-id='${pub.symbol}'>${pub.name}</div>`;
+            return `
+                <div data-id='${pub.symbol}'>
+                    <div class="sym">${pub.symbol}</div>
+                    <div class="name">${pub.name}</div>
+                </div>
+            `;
         }).join(""));
-        $("#pubDialog .publications div").click(handlePubClick);
+        $("#pubDialog .publications > div").click(handlePubClick);
         $("#pubDialog .chapters, #pubDialog .cues").html("");
         // Open the dialog
         pubDialog.dialog("open");
@@ -246,18 +252,22 @@ $(document).ready(()=>{
             // Find the chapters for this pub and populate the chapter list
             var chapters=rvu.findAvailableChapters(pub);
             $("#pubDialog .chapters").html(chapters.map(chapter=>{
-                return `<div data-id='${chapter}'>${chapter}</div>`;
+                return `
+                    <div data-id='${chapter}'>
+                        <div>${chapter}</div>
+                    </div>
+                `;
             }).join(""));
             // Select this pub in the UI. And only one selection at a time
             $(this)
                 .siblings().removeClass("ui-selected").end()
                 .addClass("ui-selected");
             // Wire up click handlers for the chapters
-            $("#pubDialog .chapters div").click(handleChapterClick);
+            $("#pubDialog .chapters > div").click(handleChapterClick);
             // Clear cues since no chapter selected
             $("#pubDialog .cues").html("");
             // Now that everything is set up, auto-click the chapter if there's only one
-            if( chapters.length===1 ) $("#pubDialog .chapters div:first").click();
+            if( chapters.length===1 ) $("#pubDialog .chapters > div:first").click();
         }
     }
     function handleChapterClick() {
@@ -270,7 +280,11 @@ $(document).ready(()=>{
                 // Grab all the cues from the video webvtt data.
                 $("#pubDialog .cues").html(refvid.webvtt.data.map(cue=>{
                     // The entire cue object is serialized as JSON and then Base64 encoded as data in the div
-                    return `<div data-cue='${btoa(JSON.stringify(cue))}'>${cue.content}</div>`;
+                    return `
+                        <div class='cue' data-cue='${btoa(JSON.stringify(cue))}'>
+                            <div>${cue.content}</div>
+                        </div>
+                    `;
                 }).join(""));
             } else {
                 console.error(err);
