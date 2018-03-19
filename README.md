@@ -21,7 +21,7 @@ Latest stable release available here:
 
 [Download older stable releases](https://github.com/joshuacurtiss/khplaylist/releases)
 
-Want to play with the latest beta release? *Be aware that the beta release has new features that aren't finished yet and may crash or not work right.* This beta version adds a "Publication Lookup" dialog. Download them here: [KH-Playlist-1.3.0-b1.dmg](https://1drv.ms/u/s!AgYIn5lxpQaN4B2ymmFl43IwE4HN) (Mac) and [KH-Playlist-Setup-1.3.0-b1.exe](https://1drv.ms/u/s!AgYIn5lxpQaN4B6PERtKUuX980OI) (Windows). 
+Want to play with the latest beta release? *Be aware that the beta release has new features that aren't finished yet and may crash or not work right.* This beta version adds a "Publication Lookup" dialog. Download it here: [KH Playlist beta](https://1drv.ms/f/s!AgYIn5lxpQaN4CLXLA91ZQAc3ZlC). 
 
 
 ## Give me more info on using this thing! ##
