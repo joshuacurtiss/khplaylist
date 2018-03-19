@@ -555,6 +555,13 @@ div {user-select: none;}
     overflow-x: hidden;
     overflow-y: scroll;
 }
+#pubDialog .hasdates {
+    display:none;
+}
+.list.dates {
+    height: 18vh !important;
+    margin-bottom: 10px;
+}
 .list > div {
     border-radius: 3px;
     border: 1px solid #999;

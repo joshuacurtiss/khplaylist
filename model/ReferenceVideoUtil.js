@@ -155,13 +155,36 @@ class ReferenceVideoUtil {
             return index===self.indexOf(elem);
         });
         return pubs.filter(pub=>{
-            // TODO: Eventually include date-based publications
-            return symbols.includes(pub.symbol.toLowerCase()) && pub.hasDates===false;
+            return symbols.includes(pub.symbol.toLowerCase());
         }).sort((a,b)=>{
             // Case-insensitive and exclude non-alphanumeric characters
             var aname=a.name.toLowerCase().replace(/[^a-z0-9]/,"");
             var bname=b.name.toLowerCase().replace(/[^a-z0-9]/,"");
             return aname.localeCompare(bname);
+        });
+    }
+
+    /*
+     *  findAvailableDates: Return an array of dates that are available
+     *  in the videos index for the given publication.
+     * 
+     */
+    findAvailableDates(pub) {
+        var baseFileRegex=
+            escapeStringRegexp(path.sep)+
+            pub.symbol+"_"+ // Symbol
+            "\\w+_"+
+            (pub.hasDates?`(\\d{4,8})_`:``)+ // Date
+            "(\\d+)_"+ // Chapter
+            "r\\d{3}p\\.\\w{3}";
+        var videoRegex=new RegExp(baseFileRegex+"$","i");
+        var videoFiles=this.videos.filter(video=>videoRegex.test(video));
+        return videoFiles.map(video=>{
+            return video.match(videoRegex)[1];
+        }).sort().reverse().filter((item,pos,ary)=>{
+            return !pos || item != ary[pos-1];
+        }).map(date=>{
+            return moment(date,"YYYYMMDD");
         });
     }
 
@@ -189,7 +212,7 @@ class ReferenceVideoUtil {
         }).map(chapter=>{
             return Number(chapter);
         });
-}
+    }
 
     addVideo(newpath) {
         var ext=path.extname(newpath).toLowerCase();

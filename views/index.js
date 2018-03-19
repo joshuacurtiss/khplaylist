@@ -18,6 +18,7 @@ const ExternalMediaUtil=require("../model/ExternalMediaUtil");
 const Scripture=require("scripture/Scripture");
 const ScriptureUtil=require("scripture/ScriptureUtil");
 const ScriptureVideoUtil=require("../model/ScriptureVideoUtil");
+const Publication=require("theoreference/Publication");
 const Reference=require("theoreference/Reference");
 const ReferenceUtil=require("theoreference/ReferenceUtil");
 const ReferenceVideoUtil=require("../model/ReferenceVideoUtil");
@@ -225,7 +226,7 @@ $(document).ready(()=>{
         // Pause video if it's going
         if( ! videoController.paused ) videoController.pause();
         // Populate publications
-        $("#pubDialog .publications").html(rvu.findAvailablePublications(ReferenceUtil.PUBLICATIONS).map(pub=>{
+        $(".publications.list").html(rvu.findAvailablePublications(ReferenceUtil.PUBLICATIONS).map(pub=>{
             return `
                 <div data-id='${pub.symbol}'>
                     <div class="sym">${pub.symbol}</div>
@@ -233,8 +234,10 @@ $(document).ready(()=>{
                 </div>
             `;
         }).join(""));
-        $("#pubDialog .publications > div").click(handlePubClick);
-        $("#pubDialog .chapters, #pubDialog .cues").html("");
+        $(".publications.list > div").click(handlePubClick);
+        $(".dates.list, .chapters.list, .cues.list").html("");
+        $("#pubDialog .hasdates").hide();
+        $(".chapters.list").height($(".publications.list").height());
         // Open the dialog
         pubDialog.dialog("open");
     }
@@ -244,37 +247,74 @@ $(document).ready(()=>{
             // Find the pub
             var symbol=$(this).attr("data-id");
             var pub=ru.getPublicationBySymbol(symbol);
-            // TODO: Needs to handle date-based publications
-            if( pub.hasDates ) {
-                console.log("Has dates!");
-                return;
-            }
-            // Find the chapters for this pub and populate the chapter list
-            var chapters=rvu.findAvailableChapters(pub);
-            $("#pubDialog .chapters").html(chapters.map(chapter=>{
-                return `
-                    <div data-id='${chapter}'>
-                        <div>${chapter}</div>
-                    </div>
-                `;
-            }).join(""));
             // Select this pub in the UI. And only one selection at a time
             $(this)
                 .siblings().removeClass("ui-selected").end()
                 .addClass("ui-selected");
-            // Wire up click handlers for the chapters
-            $("#pubDialog .chapters > div").click(handleChapterClick);
-            // Clear cues since no chapter selected
-            $("#pubDialog .cues").html("");
-            // Now that everything is set up, auto-click the chapter if there's only one
-            if( chapters.length===1 ) $("#pubDialog .chapters > div:first").click();
+            // Act differently based on if dates need to be selected or not
+            if( pub.hasDates ) {
+                handlePubGetDates(pub);
+                // Shrink chapters list to make room for the dates list
+                var datesHeight=$(".publications.list").height()-$(".dates.list").outerHeight(true)-$("#pubDialog h3").outerHeight(true);
+                $(".chapters.list").height(datesHeight+"px");
+                $("#pubDialog .hasdates").show();
+            } else {
+                handlePubGetChapters(pub);
+                // Hide dates list and reset size of chapters list to full height
+                $("#pubDialog .hasdates").hide();
+                $(".chapters.list").height($(".publications.list").height());
+            }
         }
+    }
+    function handlePubGetChapters(pub) {
+        // Find the chapters for this pub and populate the chapter list
+        var chapters=rvu.findAvailableChapters(pub);
+        $("#pubDialog .chapters").html(chapters.map(chapter=>{
+            return `
+                <div data-id='${chapter}'>
+                    <div>${chapter}</div>
+                </div>
+            `;
+        }).join(""));
+        // Wire up click handlers for the chapters
+        $("#pubDialog .chapters > div").click(handleChapterClick);
+        // Clear cues since no chapter selected
+        $("#pubDialog .cues").html("");
+        // Now that everything is set up, auto-click the chapter if there's only one
+        if( chapters.length===1 ) $("#pubDialog .chapters > div:first").click();
+    }
+    function handlePubGetDates(pub) {
+        var dates=rvu.findAvailableDates(pub);
+        $("#pubDialog .dates").html(dates.map(moment=>{
+            var p=new Publication(pub.symbol,pub.name,null,true)
+            p.date=moment;
+            return `
+                <div data-id="${moment.format('MM/DD/YYYY')}">
+                    <div>${p.dateFormatted}</div>
+                </div>
+            `;
+        }).join(""));
+        $("#pubDialog .dates > div").click(handleDateClick);
+        $("#pubDialog .chapters, #pubDialog .cues").html("");
+    }
+    function handleDateClick() {
+        // Select this pub in the UI. And only one selection at a time
+        $(this)
+            .siblings().removeClass("ui-selected").end()
+            .addClass("ui-selected");
+        // Find the pub, but also with date defined
+        var symbol=$("#pubDialog .publications .ui-selected").attr("data-id");
+        var pub=ru.getPublicationBySymbol(symbol);
+        pub.date=$(this).attr("data-id");
+        handlePubGetChapters(pub);
     }
     function handleChapterClick() {
         // Generate a reference with the symbol/chapter, and use the reference video object to get the cues
         var symbol=$("#pubDialog .publications .ui-selected").attr("data-id");
+        var pub=ru.getPublicationBySymbol(symbol);
+        if( pub.hasDates ) pub.date=$("#pubDialog .dates .ui-selected").attr("data-id"); // Add date if date-based publication
         var chapter=$(this).attr("data-id");
-        var ref=ru.parseReferences(symbol+chapter)[0];
+        var ref=ru.parseReferences(`${pub.toAbbrevString()} ${chapter}`)[0];
         rvu.createVideo(ref,(err,refvid)=>{
             if( ! err ) {
                 // Grab all the cues from the video webvtt data.
@@ -298,6 +338,8 @@ $(document).ready(()=>{
     function handlePubSave() {
         // Retrieve symbol, chapter, and cues
         var symbol=$("#pubDialog .publications .ui-selected").attr("data-id");
+        var pub=ru.getPublicationBySymbol(symbol);
+        if( pub.hasDates ) pub.date=$("#pubDialog .dates .ui-selected").attr("data-id");
         var chapter=$("#pubDialog .chapters .ui-selected").attr("data-id");
         var selectedCues=$("#pubDialog .cues .ui-selected").toArray().map(elem=>{
             // Decode the Base64 JSON objects for the cues
@@ -329,8 +371,8 @@ $(document).ready(()=>{
         // When making the source text, tack on to existing source text if there is any.
         var source="media";
         var text=$li.find("input").val();
-        var thisDisplayName=`${symbol} ${chapter}:${cueString}`;
-        var thisSource=`${symbol} ${chapter}`;
+        var thisDisplayName=`${pub.toAbbrevString()} ${chapter}:${cueString}`;
+        var thisSource=`${pub.toAbbrevString()} ${chapter}`;
         text+=`${text.length>0?";":""} ${thisDisplayName}`.trim();
         var defs={
             source, text,
