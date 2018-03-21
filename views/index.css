@@ -520,8 +520,36 @@ div {user-select: none;}
 #batchEntryDialog ul {
     margin-left: 54%;
 }
-#studyDialog input {
+#studyDialog {
+    overflow: hidden;
+}
+#studyDialog #studyText {
     width: 99%;
+}
+#studyDialog ul {
+    list-style: none;
+    padding: 0;
+    line-height: 4vh;
+    border: 1px solid #a45b13;
+    border-radius: 5px;
+    height: 48vh;
+    overflow: auto;
+}
+#studyDialog li {
+    padding: 0 1vw;
+    border-top: 1px solid #a45b13;
+}
+#studyDialog li.selected {
+    background-color: #ffdd57;
+}
+#studyDialog li:first-of-type {
+    border: 0;
+}
+#studyDialog li label {
+    display: block;
+}
+#studyDialog form label {
+    margin-right: 10px;
 }
 .publicationContainer {
     width: 45%;

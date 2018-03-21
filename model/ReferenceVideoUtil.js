@@ -1,4 +1,5 @@
 const REGEX=require("theoreference/RegEx");
+let Cue=require("./Cue");
 let Reference=require("theoreference/Reference");
 let ReferenceVideo=require("./ReferenceVideo");
 let WrapperController=require("webvtt/wrappers/WrapperController");
@@ -97,39 +98,48 @@ class ReferenceVideoUtil {
         }
     }
 
-    createStudyVideos(reference,opts,cb){
-        const DEFAULTOPTS={includeArt: true};
-        // Handle if no opts are passed in.
-        if( cb===undefined && typeof opts==="function" ) {
-            cb=opts;
-            opts={};
-        }
-        var options=Object.assign(DEFAULTOPTS, opts);
+    createStudyVideos(reference,cb){
         if( reference ) {
             this.createVideo(reference,(err,refvid)=>{
+
+                // TODO: This used to look at the reference's cues and limit by that. Fix that! i.e. "bhs 13:1-10" should only show that par range.
+
+                // We receive a reference video and use it to find all the cues.
                 var ref=refvid.reference;
-                // Establish the cues. Add one more, to get the last question
-                var cues=ref.cues.slice();
-                var lastCueIndex=cues[cues.length-1];
-                if( lastCueIndex+1 < ref.availableCues.length ) cues.push(lastCueIndex+1);
-                // Loop thru the cues and find all art and question cues.
-                var refvids=[], prevart=[];
-                var goodCues=ref.availableCues.filter((cue,index)=>{
-                    var good=cues.includes(index) && /^(q\s|art|box)/i.test(cue);
-                    var artmatch=cue.match(/^art(?:\sCaption)?\s(\d+)\s*.*/i);
-                    if( ! artmatch ) return good;
-                    if( ! prevart.includes(artmatch[1]) && options.includeArt ) prevart.push(artmatch[1]);
-                    else good=false;
-                    return good;
+                var refvids=[], prevart=[], cues=[];
+                refvid.webvtt.data.map(cue=>{
+                    // First make a bunch of cue objects
+                    return new Cue(cue.start,cue.end,cue.content,cue.id);
+                }).forEach(cue=>{
+                    // Then loop thru them, finding the "boundary" cues, and lumping together all cues that make up a paragraph
+                    const BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|q\s|r\s)/i;
+                    let lastCue=cues.length?cues[cues.length-1]:null;
+                    cue.boundary=BOUNDARY_REGEX.test(cue.content);
+                    // If last cue and this cue are not boundary cues, and their IDs are sequential, lump these together.
+                    if( lastCue && ! lastCue.boundary && Number(lastCue.id)+1==Number(cue.id) && ! cue.boundary ) {
+                        // TODO: It would be nice to clean up the cue names to be a little prettier 
+                        var contents=lastCue.content.split("-");
+                        contents[1]=cue.content;
+                        lastCue.content=contents.join("-");
+                        lastCue.id=cue.id;
+                        lastCue.end=cue.end;
+                        lastCue.max=cue.max;
+                    } else {
+                        cues.push(cue);
+                    }
                 });
-                // Each "good" cue should be a separate reference video:
-                goodCues.forEach(cue=>{
-                    var parmatch=cue.match(/^q\s(.+)/i);
-                    var p=parmatch?parmatch[1]:cue;
-                    var r=new Reference(ref.publication, ref.chapter.toString(), p);
-                    refvids.push(new ReferenceVideo(r,refvid.path,refvid.webvtt));
+                // Eliminate dupe "Art 1 Caption" and "Art 1" companion cues
+                var goodCues=cues.filter((cue,index,array)=>{
+                    const ARTMATCH_REGEX=/^art\s(?:Caption\s)?(\d+)\s*.*/i;
+                    var artmatch=cue.content.match(ARTMATCH_REGEX);
+                    // If no art match, or its first cue, its ok.
+                    if( ! artmatch || index==0 ) return true;
+                    // Otherwise, see if previous cue matches, and if so, do not include this one
+                    var prevartmatch=array[index-1].content.match(ARTMATCH_REGEX);
+                    return ! ( prevartmatch && prevartmatch[1]===artmatch[1] );
                 });
-                cb(null,refvids);
+                refvid.list=goodCues;
+                cb(null,refvid);
             });
         }
     }

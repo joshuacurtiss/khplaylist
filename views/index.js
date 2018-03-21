@@ -452,7 +452,7 @@ $(document).ready(()=>{
     studyDialog=$( "#studyDialog" ).dialog({
         autoOpen: false,
         height: $(window).height() * 0.85,
-        width: $(window).width() * 0.4,
+        width: $(window).width() * 0.45,
         modal: true,
         buttons: [
             {
@@ -469,7 +469,8 @@ $(document).ready(()=>{
             }
         ]
     });
-    $("#studyDialog input").keyup(function(){
+    $("#studyDialog input[type=checkbox]").click(handleStudyAutoCheckboxClick);
+    $("#studyDialog input[type=text]").keyup(function(){
         clearTimeout(studyTimeout);
         studyTimeout=setTimeout(parseStudyText,800);
     });
@@ -480,30 +481,59 @@ $(document).ready(()=>{
     }
     function handleStudyAdd(){
         studyDialog.dialog("close");
+        var ref=$("#studyDialog ul").prop("data-refvid").reference;
+        var pub=ref.publication;
+        var source="media";
+        var defs=[];
+        // First, loop thru the selected rows and add definitions to the defs array
+        $("#studyDialog ul li.selected").each((index,elem)=>{
+            let cue=JSON.parse(atob($(elem).attr("data-cue")));
+            // If the prev definition's last cue was the one right before this one, and this one is a question, add this one to that cue.
+            // Why? Because questions should be tacked onto the end of paragraphs, not separate cues.
+            let lastDef=defs.length?defs[defs.length-1]:undefined;
+            let lastCue=lastDef?lastDef.media[0].list[lastDef.media[0].list.length-1]:undefined;
+            if( /^q\s\d+/i.test(cue.content) && lastDef && lastCue.id==cue.id-1 ) {
+                // It's a question, tack onto the end of previous definition
+                lastDef.media[0].list.push(cue);
+                lastDef.text+=", "+cue.content;
+            } else {
+                // Create the definitions
+                let displayName=`${pub.toAbbrevString()} ${ref.chapter}:${cue.content}`;
+                let thisSource=`${pub.toAbbrevString()} ${ref.chapter}`;
+                let text=displayName;
+                defs.push({
+                    source, text,
+                    media: [
+                        {
+                            displayName,
+                            source: thisSource,
+                            list: [cue]
+                        }
+                    ]
+                });
+            }
+        });
+        // Handle trimming of the last 1.5 sec to cut out transitions, except for Art with captions and Review questions.
+        defs.forEach(def=>{
+            const DIFF=1.5;
+            let list=def.media[0].list;
+            let lastCue=list[list.length-1];
+            if( lastCue.start < lastCue.end-DIFF && /^(art\s.*caption|r\s).*$/i.test(lastCue.content)===false ) lastCue.end-=DIFF;
+        });
+        // Write the playlist rows
         var $li=$("#playlist .selected");
-        $("#studyDialog ul li").each((index,elem)=>{
-            let txt=$(elem).text();
-            let $input=$li.find("input");
+        defs.forEach((def,index)=>{
+            // Check existing playlist item, insert new row if it is populated.
+            var $input=$li.find("input");
             if( $input.val().length ) {
                 prependPlaylistRow($li);
                 $li=$li.prev();
                 $input=$li.find("input");
             }
-            $input.val(txt);
-            parsePlaylistItem($input,function (err,$li){
-                if( $li ) {
-                    let videos=$li.prop("videos");
-                    if( videos.length==1 ) {
-                        let video=videos[0];
-                        if( video.list.length==1 && 
-                            video.list[0].content.toLowerCase().substr(0,2)=="p " &&
-                            video.list[0].end-STUDY_PAR_END_TRIM>video.list[0].start ) {
-                            console.log(`Adjusting time for "${video.displayName}" (${video.list[0].start}-${video.list[0].end}) by ${STUDY_PAR_END_TRIM} sec.`);
-                            video.list[0].end-=STUDY_PAR_END_TRIM;
-                            $li.prop("data-source","media").find("input").attr("readonly","");
-                        } 
-                    }
-                }
+            // Finally, pass the definitions to the loader
+            loadPlaylistRow($li,def,()=>{
+                // Mount the first playlist row after loading the new definitions for it 
+                if( index==0 ) mountPlaylistItem("#playlist li.selected");
             });
             if( $li.is(':last-child') ) appendPlaylistRow($li);
             $li=$li.next();
@@ -720,6 +750,21 @@ function parseBatchEntryTextarea(){
     else $("#batchEntrySubmit").prop("disabled",true).addClass("ui-state-disabled");
 }
 
+function handleStudyAutoCheckboxClick(){
+    handleStudyAutoCheckbox(this.value,this.checked);
+}
+
+function handleStudyAutoCheckbox(type,value){
+    const REGEX={
+        par: /^(?:p\s\d+|box)/i,
+        art: /^art\s\d+/i,
+        q: /^q\s\d+/i
+    };
+    $("#studyDialog ul input").each(function(){
+        if( REGEX[type].test(this.value) && this.checked!=value ) $(this).click();
+    });
+}
+
 function parseStudyText(){
     var $ul=$("#studyDialog ul");
     var txt=$("#studyDialog input").val().trim();
@@ -731,10 +776,26 @@ function parseStudyText(){
             objs.sort((a,b)=>a.index-b.index);
             objs.forEach(item=>{
                 ref=item.obj;
-                rvu.createStudyVideos(ref,(err,refvids)=>{
+                rvu.createStudyVideos(ref,(err,refvid)=>{
                     var content="";
-                    refvids.forEach(refvid=>content+=`<li>${refvid.displayName}</li>`);
-                    $ul.prop("data-hash",thisHash).html(content);
+                    refvid.list.forEach(cue=>content+=`
+                        <li data-cue="${btoa(JSON.stringify(cue))}">
+                            <label for="studycue${cue.id}">
+                                <input type="checkbox" id="studycue${cue.id}" value="${cue.content}" />
+                                ${cue.content}
+                            </label>
+                        </li>
+                    `);
+                    $ul .prop("data-hash",thisHash)
+                        .prop("data-refvid",refvid)
+                        .html(content);
+                    $ul.find("input").change(function(){
+                        if( this.checked ) $(this).closest("li").addClass("selected");
+                        else $(this).closest("li").removeClass("selected");
+                    });
+                    handleStudyAutoCheckbox("par",$("#studyAutoPar").is(":checked"));
+                    handleStudyAutoCheckbox("art",$("#studyAutoArt").is(":checked"));
+                    handleStudyAutoCheckbox("q",$("#studyAutoQ").is(":checked"));
                     if( $ul.find("li").length ) $("#studySubmit").prop("disabled",false).removeClass("ui-state-disabled");
                     else $("#studySubmit").prop("disabled",true).addClass("ui-state-disabled");
                 });

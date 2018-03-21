@@ -85,10 +85,25 @@
     </div>
     <div id="studyDialog" class="dialog" title="Add Study Materials">
         <p>
-            Please type in the reference of the material to be studied. 
+            Please type in the reference of the material to be studied
+            then select the cues you want to add.
         </p>
         <form>
             <input type="text" name="studyText" id="studyText" />
+            <p>
+                <label for="studyAutoPar">
+                    <input type="checkbox" id="studyAutoPar" checked="checked" value="par" />
+                    Paragraphs
+                </label>
+                <label for="studyAutoArt">
+                    <input type="checkbox" id="studyAutoArt" checked="checked" value="art" />
+                    Art
+                </label>
+                <label for="studyAutoQ">
+                    <input type="checkbox" id="studyAutoQ" value="q" />
+                    Questions
+                </label>
+            </p>
         </form>
         <ul></ul>
     </div>
