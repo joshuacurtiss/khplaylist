@@ -793,6 +793,13 @@ function parseStudyText(){
                         if( this.checked ) $(this).closest("li").addClass("selected");
                         else $(this).closest("li").removeClass("selected");
                     });
+                    // Always autocheck Watchtower opening scripture, if we can find it
+                    if( refvid.reference.publication.isWatchtower() ) {
+                        let titleCueIndex=refvid.list.findIndex(cue=>cue.content.toLowerCase()==="title");
+                        let openingScriptureCue=refvid.list.length>titleCueIndex+1?refvid.list[titleCueIndex+1]:undefined;
+                        if( openingScriptureCue ) $ul.find("#studycue"+openingScriptureCue.id).click();
+                    }
+                    // Autocheck stuff based on current settings
                     handleStudyAutoCheckbox("par",$("#studyAutoPar").is(":checked"));
                     handleStudyAutoCheckbox("art",$("#studyAutoArt").is(":checked"));
                     handleStudyAutoCheckbox("q",$("#studyAutoQ").is(":checked"));
