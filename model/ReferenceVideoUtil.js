@@ -101,16 +101,18 @@ class ReferenceVideoUtil {
     createStudyVideos(reference,cb){
         if( reference ) {
             this.createVideo(reference,(err,refvid)=>{
-
-                // TODO: This used to look at the reference's cues and limit by that. Fix that! i.e. "bhs 13:1-10" should only show that par range.
-
-                // We receive a reference video and use it to find all the cues.
+                // Add one more cue to the reference's cue list, to include the question
                 var ref=refvid.reference;
+                var lastCue=ref.cues[ref.cues.length-1];
+                if( ref.availableCues.length>lastCue+1 ) ref.cues.push(lastCue+1);
+                // We receive a reference video and use it to find all the cues.
                 var refvids=[], prevart=[], cues=[];
                 refvid.webvtt.data.map(cue=>{
                     // First make a bunch of cue objects
                     return new Cue(cue.start,cue.end,cue.content,cue.id);
-                }).forEach(cue=>{
+                }).forEach((cue,index)=>{
+                    // If this cue is outside the range of cues for the reference, exclude it
+                    if( ! ref.cues.includes(index) ) return;
                     // Then loop thru them, finding the "boundary" cues, and lumping together all cues that make up a paragraph
                     const BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|q\s|r\s)/i;
                     let lastCue=cues.length?cues[cues.length-1]:null;
