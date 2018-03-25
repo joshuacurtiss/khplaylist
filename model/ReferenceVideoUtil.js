@@ -115,14 +115,25 @@ class ReferenceVideoUtil {
                     if( ! ref.cues.includes(index) ) return;
                     // Then loop thru them, finding the "boundary" cues, and lumping together all cues that make up a paragraph
                     const BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|q\s|r\s)/i;
+                    const PAR_REGEX=/^p\s(\d+)/i;
                     let lastCue=cues.length?cues[cues.length-1]:null;
                     cue.boundary=BOUNDARY_REGEX.test(cue.content);
+                    // If a paragraph cue, simplify its appearance. i.e. "P 1a" becomes "P 1".
+                    var parmatch=PAR_REGEX.exec(cue.content);
+                    if( parmatch ) cue.content=`P ${parmatch[1]}`;
                     // If last cue and this cue are not boundary cues, and their IDs are sequential, lump these together.
                     if( lastCue && ! lastCue.boundary && Number(lastCue.id)+1==Number(cue.id) && ! cue.boundary ) {
-                        // TODO: It would be nice to clean up the cue names to be a little prettier 
                         var contents=lastCue.content.split("-");
-                        contents[1]=cue.content;
-                        lastCue.content=contents.join("-");
+                        /*
+                            Only change the paragraph range according to these circumstances:
+                            - The first and last are not paragraph cues
+                            - The first and last both are par cues (this eliminates the range showing scriptures in middle or end of a par range)
+                            - The cues are not the same (for pars, meaning they are not two sides of a 1a-1b kind of scenario)
+                        */
+                        if( PAR_REGEX.test(contents[0])===PAR_REGEX.test(cue.content) && cue.content!==contents[0] ) {
+                            contents[1]=parmatch?parmatch[1]:cue.content; // If a par, second side of range should only show number, i.e. "P 1-2"
+                            lastCue.content=contents.join("-");
+                        }
                         lastCue.id=cue.id;
                         lastCue.end=cue.end;
                         lastCue.max=cue.max;
