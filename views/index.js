@@ -1139,6 +1139,7 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
         videoController.set("data-cue-index",cueIndex);
 		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
                 .replace("#","%23")
+                .replace("'","%27")
                 .replace("(","%28")
                 .replace(")","%29");
         if( item.list.length-1>=cueIndex ) {
