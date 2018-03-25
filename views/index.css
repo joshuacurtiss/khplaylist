@@ -537,13 +537,10 @@ div {user-select: none;}
 }
 #studyDialog li {
     padding: 0 1vw;
-    border-top: 1px solid #a45b13;
+    border-bottom: 1px solid #a45b13;
 }
 #studyDialog li.selected {
     background-color: #ffdd57;
-}
-#studyDialog li:first-of-type {
-    border: 0;
 }
 #studyDialog li label {
     display: block;
