@@ -68,6 +68,7 @@
     "string-hash": "^1.1.3",
     "theoreference": "joshuacurtiss/theoreference#747d7e9e58700a5772e4dd13bad1d4812486355c",
     "webvtt": "joshuacurtiss/webvtt#1.2.2",
+    "xml2js": "^0.4.19",
     "yauzl": "^2.9.1",
     "yazl": "^2.4.3"
   }

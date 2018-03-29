@@ -9,6 +9,7 @@ const path=require("path");
 const fs=require("fs-extra");
 const hash=require("string-hash");
 const moment=require("moment");
+const xml2js=require("xml2js");
 const yazl=require("yazl");
 const yauzl=require("yauzl");
 const progress=require('progress-stream');
@@ -891,29 +892,93 @@ function handlePlaylistImport() {
             if( ExternalMedia.ALLEXT.indexOf(path.extname(p).toLowerCase())>=0 ) fs.removeSync(p);
         }
         // Unzip the archive
+        var slsplaylist="";
         yauzl.open(filenames[0], {lazyEntries: true}, function(err, zipfile) {
             if (err) throw err;
             zipfile.readEntry();
             zipfile.on("entry", function(entry) {
                 if (/\/$/.test(entry.fileName)) {
-                    // Directory entry, skip it.
+                    // Skip "__MACOSX" directories
+                    if( /__MACOSX/.test(entry.fileName)==false )
+                        fs.ensureDirSync(APPDATADIR+"media"+path.sep+entry.fileName);
                     zipfile.readEntry();
                 } else {
                     // file entry
                     zipfile.openReadStream(entry, function(err, readStream) {
                         if (err) throw err;
+                        // Skip files in "__MACOSX" directories
+                        if( /__MACOSX/.test(entry.fileName) ) {
+                            zipfile.readEntry();
+                            return;
+                        }
                         readStream.on("end", function() {
                             zipfile.readEntry();
                         });
                         var p=APPDATADIR;
-                        if( entry.fileName.toLowerCase()!=="playlist.json" ) p+="media"+path.sep;
+                        if( /^playlist\.[a-z]{3,4}$/i.test(entry.fileName)===false ) p+="media"+path.sep;
                         readStream.pipe(fs.createWriteStream(p+entry.fileName));
+                        // If we find a "playlist.xml" file, it is an SLS playlist! Make a note of it to process it when done unzipping.
+                        if( /playlist.xml$/i.test(entry.fileName) ) slsplaylist=p+entry.fileName;
                         handleVideoPathAdd(p+entry.fileName);
                     });
                 }
             }).on("end", function(){
-                loadPlaylist();
-                progressDialog.dialog("close")
+                if( slsplaylist.length ) {
+                    // If the playlist was an SLS playlist, parse and convert it.
+                    var parser=new xml2js.Parser();
+                    fs.readFile(slsplaylist, function(err, data) {
+                        parser.parseString(data, function (err, result) {
+                            let items=result.rootElement.items[0].object;
+                            let playlist=items.map(item=>{
+                                // The text that defines it comes from mainDescription and rangeDescription (in the event of scriptures)
+                                let txt=item.mainDescription[0];
+                                // TODO: Better handle rangeDescription for non-scriptures. Match up the cues to the rangeDescription. This will be a
+                                // lot of work though, so doing it Q&D for now, and only checking the range for scriptures because they parse easier.
+                                // This effectively leaves references broken though, unless it's like a song.
+                                if( item.type[0]=="BibleChapter" ) txt+=item.rangeDescription[0];
+                                if( item.type[0]=="MediaFile" ) {
+                                    // External media can easily be just a text-parsed entry.
+                                    // TODO: This will not respect external VIDEO, though, that has trimming.
+                                    return {
+                                        source: 'text',
+                                        text: item.mainDescription[0]
+                                    };
+                                } else {
+                                    // Get the trimming of this item (any non-external media item)
+                                    let start=item['inPoint.timeValue'][0]/item['inPoint.timeScale'][0];
+                                    let end=item['outPoint.timeValue'][0]/item['outPoint.timeScale'][0];
+                                    // Make a standard playlist entry for this item.
+                                    return {
+                                        source: 'media',
+                                        text: txt,
+                                        media: [
+                                            {
+                                                displayName: txt,
+                                                source: txt,
+                                                list: [{
+                                                    start, end,
+                                                    min: start,     // We don't know the real min of the cue, so just use the trim start time.
+                                                    max: end+2,     // Same with max, plus, some scriptures seem offset by 2 sec, so allow a 2 sec leeway.
+                                                    content: txt
+                                                }]
+                                            }
+                                        ]
+                                    };
+                                }
+                            });
+                            // Delete the SLS playlist file once we're done converting.
+                            fs.remove(slsplaylist);
+                            // Save the new playlist file and reload everything!
+                            fs.writeJsonSync(APPDATADIR+"playlist.json",playlist);
+                            progressDialog.dialog("close")
+                            loadPlaylist();
+                        });
+                    });
+                } else {
+                    // Otherwise, we're done! Just reload the new playlist file.
+                    progressDialog.dialog("close")
+                    loadPlaylist();
+                }
             });
         });
     });
