@@ -2,3 +2,4 @@ node_modules
 bin
 builds
 dev/webvttcache
+yarn-error.*
