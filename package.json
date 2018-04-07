@@ -49,13 +49,13 @@
     "chai": "^4.1.2",
     "electron": "1.7.11",
     "electron-builder": "19.55.2",
-    "mocha": "^5.0.4"
+    "mocha": "^5.0.5"
   },
   "dependencies": {
     "@claviska/jquery-dropdown": "soundasleep/jquery-dropdown",
-    "chokidar": "^2.0.2",
+    "chokidar": "^2.0.3",
     "escape-string-regexp": "^1.0.5",
-    "ffbinaries": "^1.0.8",
+    "ffbinaries": "^1.0.9",
     "font-awesome": "^4.7.0",
     "fs-extra": "^1.0.0",
     "jquery": "^3.3.1",
