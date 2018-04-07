@@ -1059,11 +1059,10 @@ function loadPlaylistRow($li,item,cb) {
                             tagText="Cue not found";
                             className="mediaErr";
                             thisvid=undefined;
-                        } else {
-                            // All is well. Immediately overwrite the calculated cue list with saved cue list.
-                            thisvid.list=itemObj.list;
-                            thisvid.displayName=itemObj.displayName;
                         }
+                        // Overwrite the calculated cue list with saved cue list.
+                        thisvid.list=itemObj.list;
+                        thisvid.displayName=itemObj.displayName;
                         // Add to list of videos
                         videos[itemIndex]=thisvid;
                         // Once we've processed all videos (array is full), update the playlist row UI.
@@ -1084,28 +1083,33 @@ function loadPlaylistRow($li,item,cb) {
         }
     }
 }
+function createPlaylistItem($li) {
+    var txt=$li.find("input").val();
+    var source=$li.prop("data-source");
+    // Only create if it has content
+    if( txt.length ) {
+        var obj={"source": source, "text": txt};
+        // Only output "media" info if it is being used
+        if( source=="media" ) {
+            obj[source]=$li.prop("videos").map(video=>{
+                return {
+                    "displayName": video.displayName,
+                    "source": video.source.toString(),
+                    "list": video.list
+                }
+            });
+        }
+        return obj;
+    }
+    return null;
+}
 function savePlaylist() {
     var list=[];
     // Loop over every playlist item
     $("#playlist li").each((index,el)=>{
         $li=$(el);
-        var txt=$li.find("input").val();
-        var source=$li.prop("data-source");
-        // Only save if it has content
-        if( txt.length ) {
-            var obj={"source": source, "text": txt};
-            // Only output "media" info if it is being used
-            if( source=="media" ) {
-                obj[source]=$li.prop("videos").map(video=>{
-                    return {
-                        "displayName": video.displayName,
-                        "source": video.source.toString(),
-                        "list": video.list
-                    }
-                });
-            }
-            list.push(obj);
-        }
+        var item=createPlaylistItem($li);
+        if( item ) list.push(item);
     });
     fs.writeJsonSync(APPDATADIR+"playlist.json",list);
 }
@@ -1777,8 +1781,14 @@ function handleVideoPathAdd(newpath) {
         emu.addMedia(newpath);
         // Find playlist items in err state and re-parse.
         $("#playlist li.mediaErr").each(function(){
-            $(this).prop("data-videos-text","");
-            parsePlaylistItem($(this).find("input"));
+            if( $(this).prop("data-source")=="media" ) {
+                let $li=$(this);
+                let item=createPlaylistItem($li);
+                loadPlaylistRow($li,item);
+            } else {
+                $(this).prop("data-videos-text","");
+                parsePlaylistItem($(this).find("input"));
+            }
         });
     }
 }
@@ -1790,8 +1800,14 @@ function handleVideoPathUnlink(oldpath) {
     // Find playlist items that use this video and re-parse.
     $("#playlist li.valid").each(function(){
         if( $(this).prop("videos").findIndex(vid=>vid.path==oldpath) >= 0 ) {
-            $(this).prop("data-videos-text","");
-            parsePlaylistItem($(this).find("input"));
+            if( $(this).prop("data-source")=="media" ) {
+                let $li=$(this);
+                let item=createPlaylistItem($li);
+                loadPlaylistRow($li,item);
+            } else {
+                $(this).prop("data-videos-text","");
+                parsePlaylistItem($(this).find("input"));
+            }
         }
     });
 }
