@@ -1053,7 +1053,6 @@ function loadPlaylistRow($li,item,cb) {
                             tagText=err.tag;
                             tagHint=err.message;
                             className="mediaErr";
-                            thisvid=undefined;
                         } else if( thisvid.isVideo() && thisvid.list.length==0 ) {
                             // Handle media errs (No cues generated)
                             tagHint="Could not find part of the video.";
@@ -1191,7 +1190,7 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
         imageTimeout=null;
     }
     videoController.backgroundImage="none";
-    if( item ) {
+    if( item && item.path ) {
         pauseVideo();
         console.log(`Mounting video #${videoIndex} "${item.displayName}" cue #${cueIndex}.`);
         videoController.text="";
@@ -1202,7 +1201,8 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
         var $cueli=$(`#cue-${videoIndex}-${cueIndex}`).addClass("selected");
         var $cueIcon=$cueli.find(`i.fa`).removeClass("fa-circle-thin");
         videoController.set("data-cue-index",cueIndex);
-		var escapedPath=encodeURI(item.path.replace(/\\/g,"/"))
+        let path=item.path || '';
+        var escapedPath=encodeURI(path.replace(/\\/g,"/"))
                 .replace("#","%23")
                 .replace("'","%27")
                 .replace("(","%28")
