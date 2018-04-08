@@ -16,12 +16,12 @@ with installing the app.
 
 Latest stable release available here: 
 
-  * Mac: [KH-Playlist-1.2.1.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-1.2.1.dmg)
-  * Windows: [KH-Playlist-Setup-1.2.1.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.2.1/KH-Playlist-Setup-1.2.1.exe)
+  * Mac: [KH-Playlist-1.3.0.dmg](https://github.com/joshuacurtiss/khplaylist/releases/download/1.3.0/KH-Playlist-1.3.0.dmg)
+  * Windows: [KH-Playlist-Setup-1.3.0.exe](https://github.com/joshuacurtiss/khplaylist/releases/download/1.3.0/KH-Playlist-Setup-1.3.0.exe)
 
 [Download older stable releases](https://github.com/joshuacurtiss/khplaylist/releases)
 
-Want to play with the latest beta release? *Be aware that the beta release has new features that aren't finished yet and may crash or not work right.* This beta version adds a "Publication Lookup" dialog. Download it here: [KH Playlist Beta](https://1drv.ms/f/s!Ah6QM5_k8J0OhG5hdk5k7sbiscAC). 
+Want to play with the latest beta release? No current beta is available but when there is one, you can download it here: [KH Playlist Beta](https://1drv.ms/f/s!Ah6QM5_k8J0OhG5hdk5k7sbiscAC). 
 
 
 ## Give me more info on using this thing! ##
