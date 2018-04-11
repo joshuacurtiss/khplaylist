@@ -32,7 +32,7 @@
       "background": "icons/mac/dmgbackground.tiff"
     },
     "win": {
-      "target": "nsis",
+      "target": ["nsis","portable"],
       "icon": "icons/win/icon.ico"
     },
     "nsis": {
