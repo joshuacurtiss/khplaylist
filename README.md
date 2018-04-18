@@ -23,9 +23,6 @@ Latest stable release available here:
 
 [Download older stable releases](https://github.com/joshuacurtiss/khplaylist/releases)
 
-Want to play with the latest beta release? No current beta is available but when there is one, you can download it here: [KH Playlist Beta](https://1drv.ms/f/s!Ah6QM5_k8J0OhG5hdk5k7sbiscAC). 
-
-
 ## Give me more info on using this thing! ##
 
 First, make sure you've either downloaded some videos from [jw.org](https://www.jw.org/ase/publications) or from the JW app. Then launch the KH Playlist app.
