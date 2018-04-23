@@ -8,6 +8,8 @@ KH Playlist is not intended to compete with or replace the JW "orange" app, and 
 
 Alternatively, you can download videos from [jw.org](https://www.jw.org/ase/publications) and save them in any folder within your user account's video directory—on Windows it is named "Videos" and on Macs it is named "Movies".
 
+Consider viewing this [KH Playlist Video Tutorial](https://youtu.be/Saiq5fN3vlw) produced by Bro. Murray, or scroll down for more information.
+
 ## Download ##
 
 This application isn't signed. That just means your computer will warn you that 
@@ -48,3 +50,9 @@ Publications can feel a little more tricky but the playlist does a decent job at
 * "Sing to Jehovah 3" will also find *sn 3*. 
 
 These are just some examples demonstrating the flexibility of the playlist.
+
+## Introductory Video Tutorial ##
+
+Please enjoy this introductory tutorial created by Bro. Murray! 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Saiq5fN3vlw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
