@@ -495,8 +495,11 @@ $(document).ready(()=>{
             let lastCue=lastDef?lastDef.media[0].list[lastDef.media[0].list.length-1]:undefined;
             if( /^q\s\d+/i.test(cue.content) && lastDef && lastCue.id==cue.id-1 ) {
                 // It's a question, tack onto the end of previous definition
-                lastDef.media[0].list.push(cue);
-                lastDef.text+=", "+cue.content;
+                lastCue.id=cue.id;
+                lastCue.end=cue.end;
+                lastCue.max=cue.max;
+                lastCue.content+=', '+cue.content;
+                lastDef.text+=" and question";
             } else {
                 // Create the definitions
                 let displayName=`${pub.toAbbrevString()} ${ref.chapter}:${cue.content}`.trim();
