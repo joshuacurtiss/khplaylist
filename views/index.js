@@ -499,8 +499,8 @@ $(document).ready(()=>{
                 lastDef.text+=", "+cue.content;
             } else {
                 // Create the definitions
-                let displayName=`${pub.toAbbrevString()} ${ref.chapter}:${cue.content}`;
-                let thisSource=`${pub.toAbbrevString()} ${ref.chapter}`;
+                let displayName=`${pub.toAbbrevString()} ${ref.chapter}:${cue.content}`.trim();
+                let thisSource=`${pub.toAbbrevString()} ${ref.chapter}`.trim();
                 let text=displayName;
                 defs.push({
                     source, text,
