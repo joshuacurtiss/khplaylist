@@ -115,17 +115,8 @@ body.fullscreenMode video {
     width: 100vw;
 }
 
-#fullscreeninfo {
-    display:none;
-    position:absolute;
-    width: 16vw;
-    right: 3vw;
-    bottom: 3vh;
-    color: #444;
-    border: 3px solid #222;
-    border-radius: 8px;
-    padding: 6px;
-    background-color: #111;
+body.fullscreenMode .curTime {
+    display: none;
 }
 
 .fullscreenMode.progress {
@@ -162,6 +153,18 @@ body.playlistMode video {
     width: 100%;
     border: 2px solid #ccc;
     border-radius: 8px;
+}
+
+body.playlistMode .curTime {
+    position: absolute;
+    margin-top: -30px;
+    right: -1px;
+    font-size: 12px;
+    background-color: black;
+    opacity: 0.75;
+    padding: 5px 10px;
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
 
 body.playlistMode #videoControls {

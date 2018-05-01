@@ -36,7 +36,7 @@ const PLAYLISTITEM_CLASSES="mediaErr parseErr parsing new valid";
 const FF_SECS=15;
 const RW_SECS=5;
 const STUDY_PAR_END_TRIM=1.5;
-var videoController, $curTime, $chname;
+var videoController, $curTime;
 var videopaths=[];
 var imageTime=0, imageTimeout=null, batchEntryTimeout=null, studyTimeout=null;
 var settings=new SettingsUtil(APPDATADIR+"state.json");
@@ -48,7 +48,6 @@ $(document).ready(()=>{
     console.log("Hello!");
     videoController=new VideoController(document.getElementById("video"),document.getElementById("text"));
     $curTime=$(".curTime");
-    $chname=$(".chname");
     
     // Setup splash
     $("#splash .splashprogress").progressbar({value:false});
@@ -1246,7 +1245,10 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
 }
 
 function updateVideoUI(){
-    $curTime.text(videoController.currentTime.toFixed(2));
+    var time=videoController.currentTime.toFixed(2);
+    var sec=time % 60;
+    var min=(time-sec)/60;
+    $curTime.text(`${min}:${sec<10?'0':''}${sec.toFixed(2)}`);
 }
 
 function setCueListHeight(){
