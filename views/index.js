@@ -1217,6 +1217,7 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
                 .replace("(","%28")
                 .replace(")","%29");
         if( item.list.length-1>=cueIndex ) {
+            $(".curTime").css("visibility","visible");
             if( videoController.src!=`file://${os.type()=="Darwin"?"":"/"}${escapedPath}` ) videoController.src=escapedPath;
             else setCueListHeight();
             videoController.currentTime=Math.ceil(parseFloat(item.list[cueIndex].start)*100)/100;
@@ -1227,6 +1228,7 @@ function mountPlaylistItem(li,videoIndex=0,cueIndex=0,start=false) {
                 $cueIcon.addClass("fa-pause-circle");
             }
         } else if( item.isImage() ) {
+            $(".curTime").css("visibility","hidden");
             videoController.src="";
             videoController.currentTime=0;
             videoController.set("data-cue-index",-1); // Set to -1 to keep checkVideo from messing with it.
