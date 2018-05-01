@@ -570,11 +570,14 @@ $(document).ready(()=>{
 
     // Dropdown menu customization
     $('#dropdown').on('show', function(event, dropdownData) {
+        var targ=event.target;
+        if( targ.offsetHeight+targ.offsetTop>=$(window).height() ) $("#dropdown").addClass("jq-dropdown-top");
         var $li=$("#playlist .selected");
         if($li.is("li:last-child")) {
             $(this).find(".diabled-for-lastrow").addClass("disabled");
         }
     }).on('hide', function(event, dropdownData) {
+        $("#dropdown").removeClass("jq-dropdown-top");
         $(this).find("li").removeClass("disabled");
     });
 

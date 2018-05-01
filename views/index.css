@@ -492,6 +492,19 @@ div {user-select: none;}
 .jq-dropdown.jq-dropdown-tip:after {
     border-bottom-color: #555;
 }
+.jq-dropdown-top {
+    margin-top: -212px !important;
+}
+.jq-dropdown-top.jq-dropdown-tip:before, .jq-dropdown-top.jq-dropdown-tip:after {
+    border-top-color: #555 !important;
+    border-bottom-color: transparent !important;
+}
+.jq-dropdown-top.jq-dropdown-tip:before {
+    top: auto !important;
+    bottom: -6px !important;
+    border-top: 7px solid #555 !important;
+    border-bottom: 0 !important;
+}
 
 /* Dialogs */
 
