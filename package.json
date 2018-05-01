@@ -47,9 +47,9 @@
   "homepage": "https://github.com/joshuacurtiss/khplaylist",
   "devDependencies": {
     "chai": "^4.1.2",
-    "electron": "1.8.4",
-    "electron-builder": "20.8.1",
-    "mocha": "^5.0.5"
+    "electron": "1.8.6",
+    "electron-builder": "20.11.1",
+    "mocha": "^5.1.1"
   },
   "dependencies": {
     "@claviska/jquery-dropdown": "soundasleep/jquery-dropdown",
