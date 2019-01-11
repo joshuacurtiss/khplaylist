@@ -2748,9 +2748,9 @@ term-size@^1.2.0:
   dependencies:
     execa "^0.7.0"
 
-theoreference@joshuacurtiss/theoreference#747d7e9e58700a5772e4dd13bad1d4812486355c:
-  version "0.3.1"
-  resolved "https://codeload.github.com/joshuacurtiss/theoreference/tar.gz/747d7e9e58700a5772e4dd13bad1d4812486355c"
+theoreference@joshuacurtiss/theoreference#67c995b6673f838e023ccd61d432d7e7480a98f9:
+  version "0.3.2"
+  resolved "https://codeload.github.com/joshuacurtiss/theoreference/tar.gz/67c995b6673f838e023ccd61d432d7e7480a98f9"
   dependencies:
     moment "^2.20.1"
 
