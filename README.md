@@ -45,9 +45,9 @@ Publications can feel a little more tricky but the playlist does a decent job at
 * "Teach Us ch5 par 4" will successfully convert to *bhs 5:4*.  
 * "Teach Us 5:4" will also successfully convert to *bhs 5:4*. 
 * "w17.04 3:1" is the formal reference to *Watchtower #4, article 3, par 1*. 
-* "sn 3" is the formal reference to *"Sing to Jehovah" song #3*.  
-* "song 3" will also find *sn 3*.  
-* "Sing to Jehovah 3" will also find *sn 3*. 
+* "sjj 3" is the formal reference to *"Sing Out Joyfully" song #3*.  
+* "sing 3" will also find *sjj 3*.  
+* "Sing Out 3" will also find *sjj 3*. 
 
 These are just some examples demonstrating the flexibility of the playlist.
 
