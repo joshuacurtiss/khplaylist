@@ -608,7 +608,8 @@ div {user-select: none;}
     border: 1px solid #999;
     margin: 4px 0;
 }
-.list div div {
+.list div span, .list div div {
+    display: block;
     cursor: pointer !important;
     padding: 2px 4px;
 }

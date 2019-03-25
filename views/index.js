@@ -322,7 +322,7 @@ $(document).ready(()=>{
                     // The entire cue object is serialized as JSON and then Base64 encoded as data in the div
                     return `
                         <div class='cue' data-cue='${btoa(JSON.stringify(cue))}'>
-                            <div>${cue.content}</div>
+                            <span>${cue.content}</span>
                         </div>
                     `;
                 }).join(""));
@@ -341,7 +341,7 @@ $(document).ready(()=>{
         var pub=ru.getPublicationBySymbol(symbol);
         if( pub.hasDates ) pub.date=$("#pubDialog .dates .ui-selected").attr("data-id");
         var chapter=$("#pubDialog .chapters .ui-selected").attr("data-id");
-        var selectedCues=$("#pubDialog .cues .ui-selected").toArray().map(elem=>{
+        var selectedCues=$("#pubDialog .cues .cue.ui-selected").toArray().map(elem=>{
             // Decode the Base64 JSON objects for the cues
             var cue=JSON.parse(atob($(elem).attr("data-cue")));
             cue.min=cue.start;
