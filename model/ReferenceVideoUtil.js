@@ -106,7 +106,9 @@ class ReferenceVideoUtil {
                 var lastCue=ref.cues[ref.cues.length-1];
                 if( ref.availableCues.length>lastCue+1 ) ref.cues.push(lastCue+1);
                 // We receive a reference video and use it to find all the cues.
-                var refvids=[], prevart=[], cues=[];
+                var refvids=[], prevart=[], cues=[], parCnt=0;
+                // Note that boundary regex initially detects "P"aragraph cues. 
+                let BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|p\s|q\s|r\s)/i;
                 refvid.webvtt.data.map(cue=>{
                     // First make a bunch of cue objects
                     return new Cue(cue.start,cue.end,cue.content,cue.id);
@@ -114,13 +116,15 @@ class ReferenceVideoUtil {
                     // If this cue is outside the range of cues for the reference, exclude it
                     if( ! ref.cues.includes(index) ) return;
                     // Then loop thru them, finding the "boundary" cues, and lumping together all cues that make up a paragraph
-                    const BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|q\s|r\s)/i;
                     const PAR_REGEX=/^p\s(\d+)/i;
                     let lastCue=cues.length?cues[cues.length-1]:null;
                     cue.boundary=BOUNDARY_REGEX.test(cue.content);
                     // If a paragraph cue, simplify its appearance. i.e. "P 1a" becomes "P 1".
                     var parmatch=PAR_REGEX.exec(cue.content);
-                    if( parmatch ) cue.content=`P ${parmatch[1]}`;
+                    if( parmatch ) {
+                        cue.content=`P ${parmatch[1]}`;
+                        parCnt+=1;
+                    }
                     // If last cue and this cue are not boundary cues, and their IDs are sequential, lump these together.
                     if( lastCue && ! lastCue.boundary && Number(lastCue.id)+1==Number(cue.id) && ! cue.boundary ) {
                         var contents=lastCue.content.split("-");
@@ -139,6 +143,13 @@ class ReferenceVideoUtil {
                         lastCue.max=cue.max;
                     } else {
                         cues.push(cue);
+                    }
+                    // For the first par found, we chg the boundary regex to not see "P"aragraph cues.
+                    // We also change the cue.boundary flag so that the next cue match logic will work right.
+                    if( parCnt===1 && cue.boundary && parmatch ) {
+                        cue.boundary=false;
+                        // After the first cue is recorded, stop having "P"aragraph cues be viewed as boundary cues.
+                        BOUNDARY_REGEX=/^(title|opening|subheading|box|art|par|review|summary|presentation|q\s|r\s)/i;
                     }
                 });
                 // Eliminate dupe "Art 1 Caption" and "Art 1" companion cues
