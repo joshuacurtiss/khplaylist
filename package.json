@@ -61,7 +61,7 @@
     "ffbinaries": "^1.0.9",
     "font-awesome": "^4.7.0",
     "fs-extra": "^1.0.0",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "jquery-ui-dist": "^1.12.1",
     "jquery-ui-themes": "^1.12.0",
     "moment": "^2.20.1",
